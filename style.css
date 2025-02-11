@@ -1,0 +1,40 @@
+:root {
+  --text-color: #ffffff;
+  --bg-color: #202020;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100svh;
+    overflow: hidden;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+  padding: 40px;
+}
+
+.title {
+  width: 100%;
+  text-align: center;
+  background: #7F7FD5;
+  background: linear-gradient(to right, #91EAE4, #86A8E7, #7F7FD5);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+canvas {
+  background-color: var(--text-color);
+}
