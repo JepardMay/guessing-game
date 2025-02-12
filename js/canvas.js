@@ -1,3 +1,5 @@
+import socket from './socket.js';
+
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
 const breakpoint = matchMedia('(max-width: 600px)');
@@ -24,15 +26,16 @@ const setCanvasSize = () => {
 
 const startDrawing = (evt) => {
   isDrawing = true;
-  const x = evt.pageX - canvas.offsetLeft;
-  const y = evt.pageY - canvas.offsetTop;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
 };
 
 const stopDrawing = () => {
   isDrawing = false;
-  ctx.stroke();
+
+  // Send "stop" action to the server
+  socket.send(JSON.stringify({
+    type: 'draw',
+    action: 'stop',
+  }));
 };
 
 // Draw on the canvas
@@ -44,13 +47,16 @@ const draw = (evt) => {
   const x = evt.pageX - canvas.offsetLeft;
   const y = evt.pageY - canvas.offsetTop;
 
-
-  ctx.strokeStyle = strokeStyle;
-  ctx.lineWidth = lineWidth;
-  ctx.lineCap = 'round';
-
-  ctx.lineTo(x, y);
-  ctx.stroke();
+  // Send "draw" action to the server
+  const data = {
+    type: 'draw',
+    x,
+    y,
+    lineWidth,
+    strokeStyle,
+    action: 'draw',
+  };
+  socket.send(JSON.stringify(data));
 };
 
 // Adapt to touch events
@@ -65,8 +71,8 @@ setCanvasSize();
 // Toolbox events
 toolbar.addEventListener('click', e => {
   if (e.target.id === 'clear') {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
+    // Send "clear" action to the server
+    socket.send(JSON.stringify({ type: 'draw', action: 'clear' }));
   }
 });
 
