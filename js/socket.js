@@ -1,3 +1,5 @@
+import { userID } from "./chat.js";
+
 const socket = new WebSocket('ws://localhost:8080');
 
 const chatBox = document.getElementById('chatBox');
@@ -9,12 +11,11 @@ socket.onmessage = (event) => {
     const messageElement = document.createElement('p');
     messageElement.classList.add('message');
 
-    if (data.sender === 'self') {
+    if (data.sender === userID) {
       messageElement.classList.add('message--self');
     }
 
     messageElement.textContent = data.message;
-
     chatBox.insertBefore(messageElement, chatBox.firstChild);
   }
 };
