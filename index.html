@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guessing game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barriecito&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,14 +19,14 @@
         <input id="stroke" name='stroke' type="color">
         <label for="lineWidth">Line Width</label>
         <input id="lineWidth" name="lineWidth" min="1" max="150" value="5" type="range">
-        <button id="clear">Clear</button>
+        <button class="btn" id="clear">Clear</button>
       </div>
     </div>
     <div class="chat">
       <div class="chat__box" id="chatBox"></div>
       <div class="chat__input">
         <input id="guessInput" type="text" placeholder="Enter your guess..." />
-        <button id="submitGuess">Submit Guess</button>
+        <button class="btn" id="submitGuess">Send</button>
       </div>
     </div>
   </div>

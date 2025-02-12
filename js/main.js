@@ -1,5 +1,6 @@
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
+const breakpoint = matchMedia('(max-width: 600px)');
 
 canvas.width = 500;
 canvas.height = 500;
@@ -8,6 +9,16 @@ const ctx = canvas.getContext('2d');
 
 let isDrawing = false;
 let lineWidth = 5;
+
+const setCanvasSize = () => {
+  if (breakpoint) {
+    canvas.width = 300;
+    canvas.height = 300;
+  } else {
+    canvas.width = 500;
+    canvas.height = 500;
+  }
+};
 
 const startDrawing = () => {
   isDrawing = true;
@@ -36,6 +47,8 @@ const touchmove = (evt) => {
   evt.preventDefault();
 };
 
+setCanvasSize();
+
 // Toolbox events
 toolbar.addEventListener('click', e => {
   if (e.target.id === 'clear') {
@@ -63,3 +76,4 @@ canvas.addEventListener('touchstart', startDrawing);
 canvas.addEventListener('touchend', stopDrawing);
 canvas.addEventListener('touchmove', touchmove);
 
+breakpoint.addEventListener('change', setCanvasSize);
