@@ -1,7 +1,8 @@
 import { WebSocketServer } from "ws";
 import { DATA_TYPES } from '../shared/consts.js';
 
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = process.env.PORT || 8080;
+const wss = new WebSocketServer({ port: PORT });
 
 wss.on('connection', (ws) => {
   console.log('A new client connected.');
@@ -29,4 +30,10 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('A client disconnected.');
   });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
 });
+
+console.log(`WebSocket server is running on port ${PORT}`);
