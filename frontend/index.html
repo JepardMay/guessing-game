@@ -15,7 +15,10 @@
   <div class="container">
     <h1 class="title">Welcome to the Guessing game</h1>
     <div class="board">
-      <canvas id="drawing-board"></canvas>
+      <div class="board__wrapper">
+        <canvas id="drawing-board"></canvas>
+        <div class="cursor"></div>
+      </div>
       <div class="toolbar" id="toolbar">
         <label for="stroke">Color</label>
         <input id="stroke" name='stroke' type="color">

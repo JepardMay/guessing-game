@@ -26,6 +26,17 @@ const setCanvasSize = () => {
 
 const startDrawing = (evt) => {
   isDrawing = true;
+
+  // Send "start" action to the server
+  const data = {
+    type: 'draw',
+    x,
+    y,
+    lineWidth,
+    strokeStyle,
+    action: 'start',
+  };
+  socket.send(JSON.stringify(data));
 };
 
 const stopDrawing = () => {

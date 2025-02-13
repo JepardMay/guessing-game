@@ -26,7 +26,7 @@ socket.onmessage = (event) => {
     } else if (data.action === 'stop') {
       ctx.stroke();
       ctx.beginPath();
-    } else if (data.action === 'draw') {
+    } else if (data.action === 'draw' || data.action === 'start') {
       ctx.strokeStyle = data.strokeStyle;
       ctx.lineWidth = data.lineWidth;
       ctx.lineCap = 'round';
