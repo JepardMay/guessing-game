@@ -8,9 +8,17 @@ wss.on('connection', (ws) => {
     const data = JSON.parse(message);
 
     if (data.type === 'chat') {
+      // Broadcast chat messages
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ type: 'chat', message: data.message, sender: data.sender }));
+        }
+      });
+    } else if (data.type === 'draw') {
+      // Broadcast drawing data
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(data));
         }
       });
     }
