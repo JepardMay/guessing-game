@@ -1,5 +1,5 @@
 import socket from './socket.js';
-import { DATA_TYPES } from './consts.js';
+import { DATA_TYPES } from '../../shared/consts.js';
 import { makeId } from './utils.js';
 
 const guessInput = document.getElementById('guessInput');
