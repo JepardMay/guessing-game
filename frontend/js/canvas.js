@@ -1,14 +1,11 @@
 import socket from './socket.js';
+import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
 const breakpoint = matchMedia('(max-width: 600px)');
 
-canvas.width = 500;
-canvas.height = 500;
-
-const ctx = canvas.getContext('2d');
-
+// Drawing State
 let isDrawing = false;
 let lineWidth = 5;
 let strokeStyle = 'black';
@@ -26,27 +23,13 @@ const setCanvasSize = () => {
 
 const startDrawing = (evt) => {
   isDrawing = true;
-
-  // Send "start" action to the server
-  const data = {
-    type: 'draw',
-    x,
-    y,
-    lineWidth,
-    strokeStyle,
-    action: 'start',
-  };
-  socket.send(JSON.stringify(data));
 };
 
 const stopDrawing = () => {
   isDrawing = false;
 
   // Send "stop" action to the server
-  socket.send(JSON.stringify({
-    type: 'draw',
-    action: 'stop',
-  }));
+  sendDrawingData(DRAW_ACTIONS.STOP);
 };
 
 // Draw on the canvas
@@ -55,57 +38,70 @@ const draw = (evt) => {
     return;
   }
 
-  const x = evt.pageX - canvas.offsetLeft;
-  const y = evt.pageY - canvas.offsetTop;
+  const { x, y } = getEventCoordinates(evt);
 
   // Send "draw" action to the server
-  const data = {
-    type: 'draw',
-    x,
-    y,
-    lineWidth,
-    strokeStyle,
-    action: 'draw',
-  };
-  socket.send(JSON.stringify(data));
+  sendDrawingData(DRAW_ACTIONS.DRAW, x, y);
 };
 
-// Adapt to touch events
-const touchmove = (evt) => {
-  draw(evt.touches[0]);
-  evt.preventDefault();
+// Get event coordinates
+const getEventCoordinates = (evt) => {
+  const { pageX, pageY } = evt.touches ? evt.touches[0] : evt;
+  return {
+    x: pageX - canvas.offsetLeft,
+    y: pageY - canvas.offsetTop,
+  };
+};
+
+// Send drawing data to the server
+const sendDrawingData = (action, x, y) => {
+  try {
+    const data = {
+      type: DATA_TYPES.DRAW,
+      action,
+      x,
+      y,
+      lineWidth,
+      strokeStyle,
+    };
+    socket.send(JSON.stringify(data));
+  } catch (error) {
+    console.error('Error sending drawing data:', error);
+  }
+};
+
+// Handle toolbar events
+const handleToolbarClick = (e) => {
+  if (e.target.id === 'clear') {
+    // Send "clear" action to the server
+    sendDrawingData(DRAW_ACTIONS.CLEAR);
+  }
+};
+
+const handleToolbarChange = (e) => {
+  if (e.target.id === 'stroke') {
+    strokeStyle = e.target.value;
+  } else if (e.target.id === 'lineWidth') {
+    lineWidth = e.target.value;
+  }
 };
 
 // Initialize canvas size
 setCanvasSize();
 
-// Toolbox events
-toolbar.addEventListener('click', e => {
-  if (e.target.id === 'clear') {
-    // Send "clear" action to the server
-    socket.send(JSON.stringify({ type: 'draw', action: 'clear' }));
-  }
-});
+// Event Listeners
+toolbar.addEventListener('click', handleToolbarClick);
+toolbar.addEventListener('change', handleToolbarChange);
 
-toolbar.addEventListener('change', e => {
-  if (e.target.id === 'stroke') {
-    strokeStyle = e.target.value;
-  }
-
-  if (e.target.id === 'lineWidth') {
-    lineWidth = e.target.value;
-  }
-});
-
-// Mouse events
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mousemove', draw);
 
-// Touch events
 canvas.addEventListener('touchstart', startDrawing);
 canvas.addEventListener('touchend', stopDrawing);
-canvas.addEventListener('touchmove', touchmove);
+canvas.addEventListener('touchmove', (evt) => {
+  draw(evt.touches[0]);
+  evt.preventDefault();
+});
 
-// Handle screen size changes
 breakpoint.addEventListener('change', setCanvasSize);

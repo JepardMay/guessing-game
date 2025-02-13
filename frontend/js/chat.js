@@ -1,4 +1,5 @@
 import socket from './socket.js';
+import { DATA_TYPES } from './consts.js';
 import { makeId } from './utils.js';
 
 const guessInput = document.getElementById('guessInput');
@@ -10,7 +11,7 @@ submitGuess.addEventListener('click', () => {
   const message = guessInput.value.trim();
   if (message) {
     
-    socket.send(JSON.stringify({ type: 'chat', message, sender: userID }));
+    socket.send(JSON.stringify({ type: DATA_TYPES.CHAT, message, sender: userID }));
     guessInput.value = '';
   }
 });
