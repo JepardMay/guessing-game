@@ -1,5 +1,5 @@
 import { userID } from "./chat.js";
-import { DATA_TYPES, DRAW_ACTIONS } from '../../shared/consts.js';
+import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
 const loader = document.getElementById('loader');
 const chatBox = document.getElementById('chatBox');

@@ -1,6 +1,6 @@
 import socket from './socket.js';
 import { userID } from "./chat.js";
-import { DATA_TYPES, DRAW_ACTIONS } from '../../shared/consts.js';
+import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
