@@ -6,6 +6,36 @@ const canvas = document.getElementById('drawing-board');
 
 const ctx = canvas.getContext('2d');
 
+let lastSender = null; 
+
+const createMessage = (text, sender) => {
+  const message = document.createElement('div');
+  message.classList.add('message');
+
+  if (sender === userID) {
+    message.classList.add('message--self');
+  }
+
+  if (sender !== lastSender) {
+    message.classList.add('message--new');
+  }
+
+  const avatar = document.createElement('div');
+  avatar.classList.add('message__avatar');
+
+  avatar.textContent = sender.slice(0, 2);
+  message.appendChild(avatar);
+
+  const bubble = document.createElement('p');
+  bubble.classList.add('message__bubble');
+  bubble.textContent = text;
+  message.appendChild(bubble);
+
+  lastSender = sender;
+
+  return message;
+};
+
 const socket = (() => {
   let socket;
 
@@ -20,15 +50,8 @@ const socket = (() => {
       const data = JSON.parse(event.data);
 
       if (data.type === DATA_TYPES.CHAT) {
-        const messageElement = document.createElement('p');
-        messageElement.classList.add('message');
-
-        if (data.sender === userID) {
-          messageElement.classList.add('message--self');
-        }
-
-        messageElement.textContent = data.message;
-        chatBox.insertBefore(messageElement, chatBox.firstChild);
+        const message = createMessage(data.message, data.sender);
+        chatBox.insertBefore(message, chatBox.firstChild);
       } else if (data.type === DATA_TYPES.DRAW) {
         if (data.sender === userID) return;
 

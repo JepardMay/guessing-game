@@ -204,6 +204,23 @@ input::-webkit-inner-spin-button {
 
 .message {
   display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.message__avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  text-transform: uppercase;
+  background-color: var(--accent-color);
+  border-radius: 20px;
+}
+
+.message__bubble {
+  display: flex;
   width: fit-content;
   max-width: 400px;
   margin: 0;
@@ -216,7 +233,12 @@ input::-webkit-inner-spin-button {
 }
 
 .message--self {
+  flex-direction: row-reverse;
+  align-items: flex-end;
   margin-left: auto;
+}
+
+.message--self .message__bubble {
   background-color: var(--primary-color);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 0;
@@ -224,6 +246,15 @@ input::-webkit-inner-spin-button {
 
 .message + .message {
   margin-bottom: 15px;
+}
+
+.message + .message .message__avatar {
+  visibility: hidden;
+}
+
+.message--new + .message .message__avatar {
+  visibility: initial;
+  pointer-events: none;
 }
 
 .btn {
@@ -245,7 +276,7 @@ input::-webkit-inner-spin-button {
 .btn:focus {
   background-color: var(--accent-color);
   outline: none;
-}
+}    
 
 @media (max-width: 768px) {
   .container {
