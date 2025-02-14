@@ -1,9 +1,12 @@
 import { userID } from "./chat.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
+const SOCKET_URL = 'wss://guessing-game-10bm.onrender.com';
+
 const loader = document.getElementById('loader');
 const chatBox = document.getElementById('chatBox');
 const canvas = document.getElementById('drawing-board');
+
 
 const ctx = canvas.getContext('2d');
 
@@ -37,71 +40,99 @@ const createMessage = (text, sender) => {
   return message;
 };
 
+const createInfoMessage = (message) => {
+  const infoMessage = document.createElement('p');
+  infoMessage.classList.add('info-message');
+  infoMessage.textContent = message;
+
+  return infoMessage;
+};
+
+const handleInitType = (data) => {
+  // Restore canvas data
+  data.canvasData.forEach((action) => {
+    drawOnCanvas(action);
+  });
+
+  // Restore chat messages
+  data.chatMessages.forEach((message) => {
+    if (message.type === DATA_TYPES.CHAT) {
+      handleChatType(message);
+    } else if (message.type === DATA_TYPES.SYSTEM) {
+      handleSystemType(message);
+    }
+  });
+};
+
+const handleSystemType = (data) => {
+  const infoMessage = createInfoMessage(data.message);
+  chatBox.insertBefore(infoMessage, chatBox.firstChild);
+};
+
+const handleChatType = (data) => {
+  const message = createMessage(data.message, data.sender);
+  chatBox.insertBefore(message, chatBox.firstChild);
+};
+
+const handleDrawType = (data) => {
+  if (data.sender === userID) return;
+
+  drawOnCanvas(data);
+};
+
+const drawOnCanvas = (data) => {
+  if (data.action === DRAW_ACTIONS.CLEAR) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+  } else if (data.action === DRAW_ACTIONS.STOP) {
+    ctx.stroke();
+    ctx.beginPath();
+  } else if (data.action === DRAW_ACTIONS.DRAW) {
+    ctx.strokeStyle = data.strokeStyle;
+    ctx.lineWidth = data.lineWidth;
+    ctx.lineCap = 'round';
+
+    ctx.lineTo(data.x, data.y);
+    ctx.stroke();
+  }
+};
+
 const socket = (() => {
   let socket;
 
   const connectWebSocket = () => {
-    socket = new WebSocket('wss://guessing-game-10bm.onrender.com');
+    socket = new WebSocket(SOCKET_URL);
     loader.classList.remove('hidden');
 
     socket.onopen = () => {
       console.log('WebSocket connection established.');
       loader.classList.add('hidden');
+      socket.send(JSON.stringify({ type: 'join', username: userID }));
     };
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === DATA_TYPES.INIT) {
-        // Restore canvas data
-        data.canvasData.forEach((action) => {
-          if (action.action === DRAW_ACTIONS.CLEAR) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-          } else if (action.action === DRAW_ACTIONS.STOP) {
-            ctx.stroke();
-            ctx.beginPath();
-          } else if (action.action === DRAW_ACTIONS.DRAW) {
-            ctx.strokeStyle = action.strokeStyle;
-            ctx.lineWidth = action.lineWidth;
-            ctx.lineCap = 'round';
-
-            ctx.lineTo(action.x, action.y);
-            ctx.stroke();
-          }
-        });
-
-        // Restore chat messages
-        data.chatMessages.forEach((message) => {
-          const newMessage = createMessage(message.message, message.sender);
-          chatBox.insertBefore(newMessage, chatBox.firstChild);
-        });
-      } else if (data.type === DATA_TYPES.CHAT) {
-        const message = createMessage(data.message, data.sender);
-        chatBox.insertBefore(message, chatBox.firstChild);
-      } else if (data.type === DATA_TYPES.DRAW) {
-        if (data.sender === userID) return;
-
-        if (data.action === DRAW_ACTIONS.CLEAR) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.beginPath();
-        } else if (data.action === DRAW_ACTIONS.STOP) {
-          ctx.stroke();
-          ctx.beginPath();
-        } else if (data.action === DRAW_ACTIONS.DRAW) {
-          ctx.strokeStyle = data.strokeStyle;
-          ctx.lineWidth = data.lineWidth;
-          ctx.lineCap = 'round';
-
-          ctx.lineTo(data.x, data.y);
-          ctx.stroke();
-        }
+      switch (data.type) {
+        case DATA_TYPES.INIT:
+          handleInitType(data);
+          break;
+        case DATA_TYPES.SYSTEM:
+          handleSystemType(data);
+          break;
+        case DATA_TYPES.CHAT:
+          handleChatType(data);
+          break;
+        case DATA_TYPES.DRAW:
+          handleDrawType(data);
+          break;
       }
     };
 
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
       loader.classList.remove('hidden');
+      alert("WebSocket error occurred. Please reload the page.");
     };
 
     socket.onclose = () => {

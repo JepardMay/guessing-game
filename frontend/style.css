@@ -160,7 +160,8 @@ input::-webkit-inner-spin-button {
 .chat__box {
   display: flex;
   flex-direction: column-reverse;
-  max-height: 350px;
+  gap: 15px;
+  max-height: 488px;
   margin-bottom: 20px;
   padding: 5px;
   overflow: auto;
@@ -200,6 +201,14 @@ input::-webkit-inner-spin-button {
   padding: 10px 20px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+.info-message {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-color);
+  opacity: 0.6;
 }
 
 .message {
@@ -242,10 +251,6 @@ input::-webkit-inner-spin-button {
   background-color: var(--primary-color);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 0;
-}
-
-.message + .message {
-  margin-bottom: 15px;
 }
 
 .message + .message .message__avatar {
