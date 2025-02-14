@@ -276,7 +276,55 @@ input::-webkit-inner-spin-button {
 .btn:focus {
   background-color: var(--accent-color);
   outline: none;
-}    
+}   
+
+.loader-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+  transition: opacity var(--default-transform),
+   visibility var(--default-transform);
+}
+
+.loader-wrapper.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.loader-wrapper.hidden .loader,
+.loader-wrapper.hidden .loader:before {
+  animation-play-state: paused;
+}
+
+.loader {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  background: linear-gradient(to right, var(--primary-color) 20%, var(--bg-color) 21%);
+  background-repeat: repeat-x;
+  background-size: 36px 8px;
+  background-position: 9px bottom;
+  animation: moveX 0.5s linear infinite;
+}
+
+.loader::before  {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+  transform: translate(-50% , -50% );
+  animation: rotate 0.5s linear infinite;
+}
 
 @media (max-width: 768px) {
   .container {
@@ -289,5 +337,29 @@ input::-webkit-inner-spin-button {
 
   .chat__box {
     max-height: calc(100vh - 480px);
+  }
+}
+
+@keyframes moveX {
+  0%, 
+  25% {
+    background-position: 10px bottom; 
+  }
+
+  75%, 
+  100% {
+    background-position: -30px bottom;
+  }
+}
+
+@keyframes rotate {
+  0%, 
+  25% { 
+    transform: translate(-50% , -50% ) rotate(0deg);
+  }
+
+  75%,  
+  100% { 
+    transform:translate(-55% , -55% ) rotate(90deg);
   }
 }

@@ -1,6 +1,7 @@
 import { userID } from "./chat.js";
 import { DATA_TYPES, DRAW_ACTIONS } from '../../shared/consts.js';
 
+const loader = document.getElementById('loader');
 const chatBox = document.getElementById('chatBox');
 const canvas = document.getElementById('drawing-board');
 
@@ -41,9 +42,11 @@ const socket = (() => {
 
   const connectWebSocket = () => {
     socket = new WebSocket('wss://guessing-game-10bm.onrender.com');
+    loader.classList.remove('hidden');
 
     socket.onopen = () => {
       console.log('WebSocket connection established.');
+      loader.classList.add('hidden');
     };
 
     socket.onmessage = (event) => {
@@ -74,10 +77,12 @@ const socket = (() => {
 
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
+      loader.classList.remove('hidden');
     };
 
     socket.onclose = () => {
       console.log('WebSocket connection closed. Reconnecting...');
+      loader.classList.remove('hidden');
       setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
     };
   };
