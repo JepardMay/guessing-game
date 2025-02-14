@@ -52,7 +52,31 @@ const socket = (() => {
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === DATA_TYPES.CHAT) {
+      if (data.type === DATA_TYPES.INIT) {
+        // Restore canvas data
+        data.canvasData.forEach((action) => {
+          if (action.action === DRAW_ACTIONS.CLEAR) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+          } else if (action.action === DRAW_ACTIONS.STOP) {
+            ctx.stroke();
+            ctx.beginPath();
+          } else if (action.action === DRAW_ACTIONS.DRAW) {
+            ctx.strokeStyle = action.strokeStyle;
+            ctx.lineWidth = action.lineWidth;
+            ctx.lineCap = 'round';
+
+            ctx.lineTo(action.x, action.y);
+            ctx.stroke();
+          }
+        });
+
+        // Restore chat messages
+        data.chatMessages.forEach((message) => {
+          const newMessage = createMessage(message.message, message.sender);
+          chatBox.insertBefore(newMessage, chatBox.firstChild);
+        });
+      } else if (data.type === DATA_TYPES.CHAT) {
         const message = createMessage(data.message, data.sender);
         chatBox.insertBefore(message, chatBox.firstChild);
       } else if (data.type === DATA_TYPES.DRAW) {

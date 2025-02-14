@@ -306,7 +306,7 @@ input::-webkit-inner-spin-button {
   position: relative;
   width: 62px;
   height: 62px;
-  background: linear-gradient(to right, var(--primary-color) 20%, var(--bg-color) 21%);
+  background: linear-gradient(to right, var(--primary-color) 20%, transparent 21%);
   background-repeat: repeat-x;
   background-size: 36px 8px;
   background-position: 9px bottom;

@@ -1,4 +1,5 @@
 export const DATA_TYPES = {
+  INIT: 'init',
   CHAT: 'chat',
   DRAW: 'draw',
 };

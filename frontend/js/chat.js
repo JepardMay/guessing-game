@@ -10,9 +10,12 @@ const userID = makeId(8);
 submitGuess.addEventListener('click', () => {
   const message = guessInput.value.trim();
   if (message) {
-    
-    socket.send(JSON.stringify({ type: DATA_TYPES.CHAT, message, sender: userID }));
-    guessInput.value = '';
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: DATA_TYPES.CHAT, message, sender: userID }));
+      guessInput.value = '';
+    } else {
+      console.error('WebSocket is not connected');
+    }
   }
 });
 
