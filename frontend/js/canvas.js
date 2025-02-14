@@ -5,14 +5,14 @@ import { DATA_TYPES, DRAW_ACTIONS } from '../../shared/consts.js';
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
 const colorInput = document.getElementById('strokeColor');
-const rangeInput = document.getElementById('lineWidth');
+const sizeInput = document.getElementById('lineWidth');
 const breakpoint = matchMedia('(max-width: 600px)');
 
 const ctx = canvas.getContext('2d');
 
 // Drawing State
 let isDrawing = false;
-let lineWidth = rangeInput.value;
+let lineWidth = sizeInput.value;
 let strokeStyle = colorInput.value;
 
 // Set canvas size based on screen width
@@ -96,6 +96,12 @@ const handleToolbarClick = (e) => {
     sendDrawingData(DRAW_ACTIONS.CLEAR);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
+  } else if (e.target.id === 'reduceWidth') {
+    lineWidth = lineWidth-- > 1 ? lineWidth-- : 1;
+    sizeInput.value = lineWidth;
+  } else if (e.target.id === 'increaseWidth') {
+    lineWidth = lineWidth++ < 300 ? lineWidth++ : 300;
+    sizeInput.value = lineWidth;
   }
 };
 
@@ -103,6 +109,8 @@ const handleToolbarChange = (e) => {
   if (e.target.id === 'strokeColor') {
     strokeStyle = e.target.value;
   } else if (e.target.id === 'lineWidth') {
+    e.target.value = e.target.value > 1 ? e.target.value : 1;
+    e.target.value = e.target.value < 300 ? e.target.value : 300;
     lineWidth = e.target.value;
   }
 };

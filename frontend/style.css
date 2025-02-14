@@ -50,6 +50,7 @@ body {
 }
 
 canvas,
+.toolbar,
 .chat {
   border-radius: 4px;
   border: 2px solid var(--primary-color);
@@ -57,6 +58,95 @@ canvas,
 
 canvas {
   background-color: var(--text-color);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 8px;
+}
+
+.toolbar__item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.toolbar__item:last-child {
+  margin-left: auto;
+}
+
+.toolbar__item label {
+  cursor: pointer;
+}
+
+input[type="color"] {
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  background: var(--text-color);
+  border-radius: 4px;
+  border: none;
+  appearance: none;
+  overflow: hidden;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;    
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;  
+  border-radius: 4px;
+}
+
+input[type=color]::-moz-focus-inner {
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+}
+
+input[type=color]::-moz-color-swatch {
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+}
+
+.size-input {
+  display: grid;
+  grid-template-columns: repeat(3, 30px);
+  grid-template-rows: 30px;
+  gap: 5px;
+}
+
+.size-input .btn {
+  padding: 0;
+}
+
+input[type="number"] {
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  font: inherit;
+  text-align: center;
+  background: var(--text-color);
+  border-radius: 4px;
+  border: none;
+  appearance: textfield;
+  overflow: hidden;
+  outline: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
 }
 
 .chat {
