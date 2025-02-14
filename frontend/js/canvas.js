@@ -1,14 +1,19 @@
 import socket from './socket.js';
+import { userID } from "./chat.js";
 import { DATA_TYPES, DRAW_ACTIONS } from '../../shared/consts.js';
 
 const canvas = document.getElementById('drawing-board');
 const toolbar = document.getElementById('toolbar');
+const colorInput = document.getElementById('strokeColor');
+const rangeInput = document.getElementById('lineWidth');
 const breakpoint = matchMedia('(max-width: 600px)');
+
+const ctx = canvas.getContext('2d');
 
 // Drawing State
 let isDrawing = false;
-let lineWidth = 5;
-let strokeStyle = 'black';
+let lineWidth = rangeInput.value;
+let strokeStyle = colorInput.value;
 
 // Set canvas size based on screen width
 const setCanvasSize = () => {
@@ -30,6 +35,8 @@ const stopDrawing = () => {
 
   // Send "stop" action to the server
   sendDrawingData(DRAW_ACTIONS.STOP);
+  ctx.stroke();
+  ctx.beginPath();
 };
 
 // Draw on the canvas
@@ -42,6 +49,12 @@ const draw = (evt) => {
 
   // Send "draw" action to the server
   sendDrawingData(DRAW_ACTIONS.DRAW, x, y);
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+
+  ctx.lineTo(x, y);
+  ctx.stroke();
 };
 
 // Get event coordinates
@@ -63,23 +76,31 @@ const sendDrawingData = (action, x, y) => {
       y,
       lineWidth,
       strokeStyle,
+      sender: userID
     };
-    socket.send(JSON.stringify(data));
+    if (socket && typeof socket.send === 'function') {
+      socket.send(JSON.stringify(data));
+    } else {
+      console.error('Socket is not available or does not have a send method');
+    }
   } catch (error) {
     console.error('Error sending drawing data:', error);
   }
 };
+
 
 // Handle toolbar events
 const handleToolbarClick = (e) => {
   if (e.target.id === 'clear') {
     // Send "clear" action to the server
     sendDrawingData(DRAW_ACTIONS.CLEAR);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
   }
 };
 
 const handleToolbarChange = (e) => {
-  if (e.target.id === 'stroke') {
+  if (e.target.id === 'strokeColor') {
     strokeStyle = e.target.value;
   } else if (e.target.id === 'lineWidth') {
     lineWidth = e.target.value;
