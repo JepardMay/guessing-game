@@ -4,7 +4,7 @@
   --primary-color: #2EC4B6;
   --secondary-color: #20A4F3;
   --accent-color: #FF3366;
-  --default-transform: 0.3s ease;
+  --default-transition: 0.3s ease;
 }
 
 *,
@@ -42,6 +42,96 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+.title--sm {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.lobby,
+.room,
+.game {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100svh - 100px);
+  transition: opacity var(--default-transition),
+    visibility var(--default-transition);
+}
+
+.lobby > .btn {
+  margin-bottom: 20px;
+}
+
+.join-room {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.join-room:last-child {
+  border: none;
+}
+
+.join-room p {
+  margin: 0;
+}
+
+.join-room span {
+  color: var(--primary-color);
+}
+
+.join-room .btn {
+  padding: 8px 10px;
+  font-size: 16px;
+}
+
+.lobby,
+.room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.room__footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.lobby__rooms,
+.room__players {
+  flex-grow: 1;
+  width: 100%;
+  max-width: 550px;
+  max-height: calc(100svh - 200px);
+  margin: 0 0 20px;
+  padding: 5px;
+  list-style: none;
+  overflow: auto;
+  scrollbar-width: 10px;
+  scrollbar-color: transparent;
+}
+
+.lobby__list::-webkit-scrollbar,
+.room__players::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.lobby__list::-webkit-scrollbar-thumb,
+.room__players::-webkit-scrollbar-thumb {
+  background-color: var(--secondary-color);
+  border-radius: 38px;
+}
+
+.player {
+  margin: 10px 0;
+  text-align: center;
+}
+
 .board {
   display: flex;
   flex-direction: column;
@@ -49,6 +139,8 @@ body {
   gap: 15px;
 }
 
+.lobby__rooms,
+.room__players,
 canvas,
 .toolbar,
 .chat {
@@ -274,7 +366,12 @@ input::-webkit-inner-spin-button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color var(--default-transform);
+  transition: background-color var(--default-transition),
+    opacity var(--default-transition);
+}
+
+.btn:disabled {
+  opacity: 0.6;
 }
 
 .btn:hover,
@@ -292,8 +389,8 @@ input::-webkit-inner-spin-button {
   align-items: center;
   backdrop-filter: blur(4px);
   overflow: hidden;
-  transition: opacity var(--default-transform),
-   visibility var(--default-transform);
+  transition: opacity var(--default-transition),
+   visibility var(--default-transition);
 }
 
 .loader-wrapper.hidden {
@@ -331,6 +428,29 @@ input::-webkit-inner-spin-button {
   animation: rotate 0.5s linear infinite;
 }
 
+.room,
+.game {
+  display: none;
+}
+
+.room-is-active .lobby,
+.room-is-active .room {
+  display: none;
+}
+
+.room-is-active .room {
+  display: flex;
+}
+
+.game-is-active .lobby,
+.game-is-active .room {
+  display: none;
+}
+
+.game-is-active .game {
+  display: flex;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;
@@ -338,6 +458,10 @@ input::-webkit-inner-spin-button {
   
   .title {
     font-size: 28px;
+  }
+
+  .title--sm {
+    font-size: 20px;
   }
 
   .chat__box {
