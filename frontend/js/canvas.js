@@ -1,5 +1,5 @@
 import socket from './socket.js';
-import { userID } from "./chat.js";
+import { user } from "./user.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
 const canvas = document.getElementById('drawing-board');
@@ -76,7 +76,7 @@ const sendDrawingData = (action, x, y) => {
       y,
       lineWidth,
       strokeStyle,
-      sender: userID
+      sender: user
     };
     if (socket && typeof socket.send === 'function') {
       socket.send(JSON.stringify(data));

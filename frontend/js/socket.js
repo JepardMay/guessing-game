@@ -1,5 +1,6 @@
-import { userID } from "./chat.js";
+import { user } from "./user.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
+import { activateScreen, updateRoomList, updateCurrentRoom } from "./rooms.js";
 
 const SOCKET_URL = 'wss://guessing-game-10bm.onrender.com';
 
@@ -16,18 +17,18 @@ const createMessage = (text, sender) => {
   const message = document.createElement('div');
   message.classList.add('message');
 
-  if (sender === userID) {
+  if (sender.id === user.id) {
     message.classList.add('message--self');
   }
 
-  if (sender !== lastSender) {
+  if (sender.id !== lastSender?.id) {
     message.classList.add('message--new');
   }
 
   const avatar = document.createElement('div');
   avatar.classList.add('message__avatar');
 
-  avatar.textContent = sender.slice(0, 2);
+  avatar.textContent = sender.id.slice(0, 2);
   message.appendChild(avatar);
 
   const bubble = document.createElement('p');
@@ -64,6 +65,20 @@ const handleInitType = (data) => {
   });
 };
 
+const handleRoomUpdateType = (data) => {
+  if (user.roomId === data.roomId) {
+    updateCurrentRoom(data.players);
+
+    if (data.gameOn) {
+      activateScreen('game');
+    }
+  }
+};
+
+const handleRoomLeftType = (data) => {
+  activateScreen('lobby');
+};
+
 const handleSystemType = (data) => {
   const infoMessage = createInfoMessage(data.message);
   chatBox.insertBefore(infoMessage, chatBox.firstChild);
@@ -75,7 +90,7 @@ const handleChatType = (data) => {
 };
 
 const handleDrawType = (data) => {
-  if (data.sender === userID) return;
+  if (data.sender.id === user.id) return;
 
   drawOnCanvas(data);
 };
@@ -107,7 +122,7 @@ const socket = (() => {
     socket.onopen = () => {
       console.log('WebSocket connection established.');
       loader.classList.add('hidden');
-      socket.send(JSON.stringify({ type: 'join', username: userID }));
+      socket.send(JSON.stringify({ type: 'join', username: user.id }));
     };
 
     socket.onmessage = (event) => {
@@ -116,6 +131,21 @@ const socket = (() => {
       switch (data.type) {
         case DATA_TYPES.INIT:
           handleInitType(data);
+          break;
+        case DATA_TYPES.ROOM_CREATED:
+          activateScreen('room', data.roomId, data.host.id);
+          break;
+        case DATA_TYPES.ROOM_JOINED:
+          activateScreen('room', data.roomId, data.host.id);
+          break;
+        case DATA_TYPES.ROOM_LIST_UPDATE:
+          updateRoomList(data.rooms);
+          break;
+        case DATA_TYPES.ROOM_UPDATE:
+          handleRoomUpdateType(data);
+          break;
+        case DATA_TYPES.ROOM_LEFT:
+          handleRoomLeftType(data);
           break;
         case DATA_TYPES.SYSTEM:
           handleSystemType(data);
@@ -131,7 +161,7 @@ const socket = (() => {
 
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
-      loader.classList.remove('hidden');
+      loader.classList.add('hidden');
       alert("WebSocket error occurred. Please reload the page.");
     };
 

@@ -19,18 +19,13 @@
     <section id="lobby" class="lobby">
       <h2 class="title title--sm">Lobby</h2>
       <button id="createRoom" class="btn">Create New Room</button>
-      <ul id="roomList" class="lobby__rooms">
-        <li class="join-room">
-          <p>Room: <span>lsdkjdsfl</span></p>
-          <button class="btn">Join</button>
-        </li>
-      </ul>
+      <ul id="roomList" class="lobby__rooms"></ul>
     </section>
     
     <!-- Room Section -->
     <section id="room" class="room">
-      <h2 class="title title--sm">Room: <span id="roomId">1</span></h2>
-      <ul id="roomPlayers" class="room__players"></ul>
+      <h2 class="title title--sm">Room: <span id="roomId">1</span> - host: <span id="hostId">2</span></h2>
+      <ol id="roomPlayers" class="room__players"></ol>
       <div class="room__footer">
         <button id="leaveRoom" class="btn">Leave Room</button>
         <button id="startGame" class="btn" disabled>Start Game</button>
@@ -39,7 +34,7 @@
 
     <!-- Game Section -->
     <section id="game" class="game">
-      <h2 class="title title--sm"><span id="activeUser">Someone</span> is drawing</h2>
+      <!-- <h2 class="title title--sm"><span id="activeUser">Someone</span> is drawing</h2> -->
       <div class="board">
         <div class="board__wrapper">
           <canvas id="drawing-board"></canvas>
