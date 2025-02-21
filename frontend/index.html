@@ -13,59 +13,68 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="title">Welcome to the Guessing game</h1>
+    <h1 class="title">Guess the Drawing</h1>
 
     <!-- Lobby Section -->
-    <section id="lobby" class="lobby">
-      <h2 class="title title--sm">Lobby</h2>
-      <button id="createRoom" class="btn">Create New Room</button>
-      <ul id="roomList" class="lobby__rooms"></ul>
-    </section>
-    
-    <!-- Room Section -->
-    <section id="room" class="room">
-      <h2 class="title title--sm">Room: <span id="roomId">1</span> - host: <span id="hostId">2</span></h2>
-      <ol id="roomPlayers" class="room__players"></ol>
-      <div class="room__footer">
-        <button id="leaveRoom" class="btn">Leave Room</button>
-        <button id="startGame" class="btn" disabled>Start Game</button>
-      </div>
-    </section>
-
-    <!-- Game Section -->
-    <section id="game" class="game">
-      <!-- <h2 class="title title--sm"><span id="activeUser">Someone</span> is drawing</h2> -->
-      <div class="board">
-        <div class="board__wrapper">
-          <canvas id="drawing-board"></canvas>
-          <div class="cursor"></div>
+    <div id="lobby" class="lobby">
+      <div class="lobby__body">
+        <div class="lobby__header">
+          <button id="createRoom" class="btn">Create New Room</button>
+          <input class="input" type="text" name="searchRoom" id="searchRoom" placeholder="Search for a room">
         </div>
-        <div class="toolbar" id="toolbar">
-          <div class="toolbar__item">
-            <label for="strokeColor">Color</label>
-            <input id="strokeColor" name='strokeColor' type="color">
+        <ul id="roomList" class="lobby__rooms"></ul>
+      </div>
+    </div>
+    
+    <div class="wrapper">
+      <!-- Room Section -->
+      <section id="room" class="room">
+        <div class="room__body">
+          <h2 class="title title--sm">Room: <span id="roomId">1</span></h2>
+          <h3 class="title title--xs">Players:</h3>
+          <ol id="roomPlayers" class="room__players"></ol>
+          <div class="room__footer">
+            <button id="leaveRoom" class="btn">Leave Room</button>
+            <button id="startGame" class="btn" disabled>Start Game</button>
           </div>
-          <div class="toolbar__item">
-            <label for="lineWidth">Brush size</label>
-            <div class="size-input">
-              <button class="btn" id="reduceWidth" type="button">-</button>
-              <input id="lineWidth" name="lineWidth" value="5" min="1" max="300" type="number">
-              <button class="btn" id="increaseWidth" type="button">+</button>
+        </div>
+      </section>
+
+      <!-- Game Section -->
+      <section id="game" class="game">
+        <!-- <h2 class="title title--sm"><span id="activeUser">Someone</span> is drawing</h2> -->
+        <div class="board">
+          <div class="board__wrapper">
+            <canvas id="drawing-board"></canvas>
+            <div class="cursor"></div>
+          </div>
+          <div class="toolbar" id="toolbar">
+            <div class="toolbar__item">
+              <label for="strokeColor">Color</label>
+              <input id="strokeColor" name='strokeColor' type="color">
+            </div>
+            <div class="toolbar__item">
+              <label for="lineWidth">Brush size</label>
+              <div class="size-input">
+                <button class="btn" id="reduceWidth" type="button">-</button>
+                <input id="lineWidth" name="lineWidth" value="5" min="1" max="300" type="number">
+                <button class="btn" id="increaseWidth" type="button">+</button>
+              </div>
+            </div>
+            <div class="toolbar__item">
+              <button class="btn" id="clear">Clear</button>
             </div>
           </div>
-          <div class="toolbar__item">
-            <button class="btn" id="clear">Clear</button>
-          </div>
         </div>
-      </div>
+      </section>
       <div class="chat">
         <div class="chat__box" id="chatBox"></div>
         <div class="chat__input">
-          <input id="guessInput" type="text" placeholder="Enter your guess..." />
+          <input class="input" id="guessInput" type="text" placeholder="Enter your message..." />
           <button class="btn" id="submitGuess">Send</button>
         </div>
       </div>
-    </section>
+    </div>
   </div>
 
   <div id="loader" class="loader-wrapper">
