@@ -8,7 +8,7 @@ const wss = new WebSocketServer({ port: PORT });
 const connectedUsers = new Map(); // Map<ws, { username, roomId }>
 
 // Track rooms
-const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string }[] }>
+const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, gameOn: boolean }[] }>
 
 wss.on('connection', (ws) => {
   console.log('A new client connected.');
@@ -31,14 +31,18 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
-    console.log('A client disconnected.');
-    connectedUsers.delete(ws);
-
     // Broadcast a system message to all clients
     const userData = connectedUsers.get(ws);
-    if (userData && userData.username) {
+    if (userData?.username) {
       broadcastSystemMessage(`${userData.username} has left the chat.`);
     }
+
+    if (userData?.roomId && userData?.username) {
+      checkRoom(userData.roomId, userData.username);
+    }
+
+    console.log('A client disconnected.');
+    connectedUsers.delete(ws);
 
     // If no users are connected, clear the session data
     if (connectedUsers.size === 0) {
@@ -80,7 +84,7 @@ function createRoom(data, ws) {
 
   // Update user data
   connectedUsers.get(ws).roomId = data.roomId;
-  connectedUsers.get(ws).username = data.user; // Set username
+  connectedUsers.get(ws).username = data.user.id; // Set username
 
   ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_CREATED, roomId: data.roomId, host: data.user }));
 
@@ -95,7 +99,7 @@ function joinRoom(data, ws) {
     
     // Update user data
     connectedUsers.get(ws).roomId = data.roomId;
-    connectedUsers.get(ws).username = data.user; // Set username
+    connectedUsers.get(ws).username = data.user.id; // Set username
 
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_JOINED, roomId: data.roomId, host: room.host }));
 
@@ -113,18 +117,24 @@ function leaveRoom(data, ws) {
 
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
-    if (room.host === data.user.id) {
-      if (room.players.length > 0) {
-        room.host = room.players[0];
-      } else {
-        rooms.delete(data.roomId);
-      }
-    }
-
-    broadcastRoomUpdate(data.roomId);
-    broadcastRoomList();
+    checkRoom(data.roomId, data.user.id);
   }
 }
+
+function checkRoom(roomId, userId) {
+  const room = rooms.get(roomId);
+
+  if (room.host.id === userId) {
+    if (room.players.length > 1) {
+      room.host = room.players[0];
+    } else {
+      rooms.delete(roomId);
+    }
+  }
+
+  broadcastRoomUpdate(roomId);
+  broadcastRoomList();
+};
 
 function startGame(data) {
   const room = rooms.get(data.roomId);
