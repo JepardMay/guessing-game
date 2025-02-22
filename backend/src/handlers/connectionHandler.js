@@ -1,6 +1,6 @@
 import { addUser, removeUser, getUser, getConnectedUsers } from '../managers/userManager.js';
-import { rooms, checkRoom } from '../managers/roomManager.js';
-import { broadcastSystemMessage, broadcastRoomList } from '../managers/broadcastManager.js';
+import { rooms, handleUserDisconnection } from '../managers/roomManager.js';
+import { broadcastRoomList } from '../managers/broadcastManager.js';
 import { handleMessage } from './messageHandler.js';
 
 export function setupConnectionHandlers(wss) {
@@ -24,16 +24,8 @@ export function setupConnectionHandlers(wss) {
 
     ws.on('close', () => {
       const userData = getUser(ws);
-      if (userData?.id) {
-        broadcastSystemMessage(`${userData.id} has left the chat.`);
-      }
-
-      if (userData?.roomId && userData?.id) {
-        const room = rooms.get(userData.roomId);
-        if (room) {
-          room.players = room.players.filter((player) => player.id !== userData.id);
-          checkRoom(userData.roomId, userData.id);
-        }
+      if (userData) {
+        handleUserDisconnection(userData);
       }
 
       console.log('A client disconnected.');

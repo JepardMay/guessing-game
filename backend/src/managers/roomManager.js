@@ -1,5 +1,5 @@
 import { DATA_TYPES } from '../constants.js';
-import { broadcastRoomUpdate, broadcastRoomList } from './broadcastManager.js';
+import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 
 export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string }, gameOn: boolean }[] }>
 
@@ -14,6 +14,7 @@ export function createRoom(data, ws, connectedUsers) {
 
   broadcastRoomUpdate(data.roomId, rooms);
   broadcastRoomList(rooms);
+  broadcastSystemMessage(`${data.user.id} has created the room.`);
 }
 
 export function joinRoom(data, ws, connectedUsers) {
@@ -29,6 +30,7 @@ export function joinRoom(data, ws, connectedUsers) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
+    broadcastSystemMessage(`${data.user.id} has joined the room.`);
   }
 }
 
@@ -42,6 +44,7 @@ export function leaveRoom(data, ws, connectedUsers) {
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
     checkRoom(data.roomId, data.user.id);
+    broadcastSystemMessage(`${data.user.id} has left the room.`);
   }
 }
 
@@ -65,6 +68,7 @@ export function removePlayer(data, connectedUsers) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
+    broadcastSystemMessage(`${data.user.id} has been removed from the room.`);
   }
 }
 
@@ -91,5 +95,21 @@ export function startGame(data) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
+    broadcastSystemMessage(`The game in room ${data.roomId} has started.`);
+  }
+}
+
+export function handleUserDisconnection(userData) {
+  if (userData.id) {
+    broadcastSystemMessage(`${userData.id} has disconnected.`);
+
+    if (userData.roomId) {
+      const room = rooms.get(userData.roomId);
+
+      if (room) {
+        room.players = room.players.filter((player) => player.id !== userData.id);
+        checkRoom(userData.roomId, userData.id);
+      }
+    }
   }
 }
