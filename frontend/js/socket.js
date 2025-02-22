@@ -8,7 +8,6 @@ const loader = document.getElementById('loader');
 const chatBox = document.getElementById('chatBox');
 const canvas = document.getElementById('drawing-board');
 
-
 const ctx = canvas.getContext('2d');
 
 let lastSender = null; 
@@ -76,6 +75,7 @@ const handleRoomUpdateType = (data) => {
 };
 
 const handleRoomLeftType = (data) => {
+  chatBox.innerHTML = '';
   activateScreen('lobby');
 };
 
@@ -134,6 +134,9 @@ const socket = (() => {
           break;
         case DATA_TYPES.ROOM_CREATED:
           activateScreen('room', data.roomId, data.host.id);
+          break;
+        case DATA_TYPES.PLAYER_REMOVED:
+          handleRoomLeftType(data);
           break;
         case DATA_TYPES.ROOM_JOINED:
           activateScreen('room', data.roomId, data.host.id);

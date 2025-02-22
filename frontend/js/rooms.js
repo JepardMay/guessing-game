@@ -12,7 +12,8 @@ const leaveRoomBtn = document.getElementById('leaveRoom');
 
 const searchInput = document.getElementById('searchRoom');
 
-let rooms = []; // { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, gameOn: boolean }[]
+let rooms = []; // { host: string, players[], gameOn: boolean }[]
+let players = []; // { username: string, id: string, isHost: boolean, roomId: string }[]
 
 const filterRooms = (searchText) => {
   return rooms.filter((room) => {
@@ -39,14 +40,14 @@ const createJoinRoomItem = (room) => {
   return roomItem;
 };
 
-const createPlayerItem = (player) => {
+const createPlayerItem = (player, index) => {
   const playerItem = document.createElement('li');
   playerItem.classList.add('player');
   playerItem.innerHTML = `
     <div>
       <p>${player.id} ${player.isHost ? '(Host)' : ''}</p>
       ${(!player.isHost && user.isHost) ? `
-        <button class="btn-icon" data-player-id="${player.id}" aria-label="Remove the player">
+        <button class="btn-icon" data-player-id="${index}" aria-label="Remove the player">
           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="800px" height="800px" viewBox="-1.7 0 20.4 20.4" class="cf-icon-svg"><path d="M16.417 10.283A7.917 7.917 0 1 1 8.5 2.366a7.916 7.916 0 0 1 7.917 7.917zm-6.804.01 3.032-3.033a.792.792 0 0 0-1.12-1.12L8.494 9.173 5.46 6.14a.792.792 0 0 0-1.12 1.12l3.034 3.033-3.033 3.033a.792.792 0 0 0 1.12 1.119l3.032-3.033 3.033 3.033a.792.792 0 0 0 1.12-1.12z"/></svg>
         </button>
       ` : ''}
@@ -97,10 +98,13 @@ const renderRoomList = (rooms) => {
   });
 };
 
-const updateCurrentRoom = (players) => {
+const updateCurrentRoom = (data) => {
+  players = data;
+  user.isHost = players[0].id === user.id && players[0].isHost;
+  startGameBtn.disabled = !user.isHost;
   roomPlayers.innerHTML = '';
-  players.forEach((player) => {
-    const playerItem = createPlayerItem(player);
+  players.forEach((player, index) => {
+    const playerItem = createPlayerItem(player, index);
     roomPlayers.appendChild(playerItem);
   });
 };
@@ -129,6 +133,17 @@ roomList.addEventListener('click', (e) => {
     const roomId = e.target.dataset.joinId;
     user.isHost = false;
     socket.send(JSON.stringify({ type: 'joinRoom', roomId, user: user }));
+  }
+});
+
+roomPlayers.addEventListener('click', (e) => {
+  const playerId = e.target.closest('.btn-icon')?.dataset.playerId;
+  if (playerId && user.isHost) {
+    const player = players[Number(playerId)];
+
+    if (player) {
+      socket.send(JSON.stringify({ type: 'removePlayer', roomId: user.roomId, user: player }));
+    }
   }
 });
 

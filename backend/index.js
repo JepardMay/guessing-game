@@ -1,20 +1,20 @@
-import { WebSocketServer } from "ws";
-import { DATA_TYPES } from "./constants.js";
+import { WebSocketServer } from 'ws';
+import { DATA_TYPES } from './constants.js';
 
 const PORT = process.env.PORT || 8080;
 const wss = new WebSocketServer({ port: PORT });
 
 // Track connected users
-const connectedUsers = new Map(); // Map<ws, { username, roomId }>
+const connectedUsers = new Map(); // Map<ws, { username, id, roomId }>
 
 // Track rooms
-const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, gameOn: boolean }[] }>
+const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string }, gameOn: boolean }[] }>
 
 wss.on('connection', (ws) => {
   console.log('A new client connected.');
   
   // Initialize user data
-  connectedUsers.set(ws, { username: null, roomId: null });
+  connectedUsers.set(ws, { username: null, id: null, roomId: null });
 
   broadcastRoomList();
 
@@ -33,12 +33,17 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     // Broadcast a system message to all clients
     const userData = connectedUsers.get(ws);
-    if (userData?.username) {
-      broadcastSystemMessage(`${userData.username} has left the chat.`);
+    if (userData?.id) {
+      broadcastSystemMessage(`${userData.id} has left the chat.`);
     }
 
-    if (userData?.roomId && userData?.username) {
-      checkRoom(userData.roomId, userData.username);
+    if (userData?.roomId && userData?.id) {
+      const room = rooms.get(userData.roomId);
+      if (room) {
+        room.players = room.players.filter((player) => player.id !== userData.id);
+
+        checkRoom(userData.roomId, userData.id);
+      }
     }
 
     console.log('A client disconnected.');
@@ -64,6 +69,9 @@ function handleMessage(data, ws) {
     case DATA_TYPES.JOIN_ROOM:
       joinRoom(data, ws);
       break;
+    case DATA_TYPES.REMOVE_PLAYER:
+      removePlayer(data);
+      break;
     case DATA_TYPES.LEAVE_ROOM:
       leaveRoom(data, ws);
       break;
@@ -84,7 +92,7 @@ function createRoom(data, ws) {
 
   // Update user data
   connectedUsers.get(ws).roomId = data.roomId;
-  connectedUsers.get(ws).username = data.user.id; // Set username
+  connectedUsers.get(ws).id = data.user.id;
 
   ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_CREATED, roomId: data.roomId, host: data.user }));
 
@@ -99,7 +107,7 @@ function joinRoom(data, ws) {
     
     // Update user data
     connectedUsers.get(ws).roomId = data.roomId;
-    connectedUsers.get(ws).username = data.user.id; // Set username
+    connectedUsers.get(ws).id = data.user.id;
 
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_JOINED, roomId: data.roomId, host: room.host }));
 
@@ -113,7 +121,7 @@ function leaveRoom(data, ws) {
   if (room) {
     room.players = room.players.filter((player) => player.id !== data.user.id);
     
-    connectedUsers.get(ws).roomId = null; // Clear roomId
+    connectedUsers.get(ws).roomId = null;
 
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
@@ -121,12 +129,36 @@ function leaveRoom(data, ws) {
   }
 }
 
+function removePlayer(data) {
+  const room = rooms.get(data.roomId);
+  if (room) {
+    const removedPlayer = room.players.find((player) => player.id === data.user.id);
+    room.players = room.players.filter((player) => player.id !== data.user.id);
+
+    if (removedPlayer) {
+      const removedPlayerClient = Array.from(connectedUsers.keys()).find(
+        (client) => connectedUsers.get(client).id === removedPlayer.id
+      );
+
+      if (removedPlayerClient) {
+        removedPlayerClient.send(
+          JSON.stringify({ type: DATA_TYPES.PLAYER_REMOVED, roomId: data.roomId })
+        );
+      }
+    }
+
+    broadcastRoomUpdate(data.roomId);
+    broadcastRoomList();
+  }
+}
+
 function checkRoom(roomId, userId) {
   const room = rooms.get(roomId);
 
-  if (room.host.id === userId) {
-    if (room.players.length > 1) {
+  if (room && room.host.id === userId) {
+    if (room.players.length > 0) {
       room.host = room.players[0];
+      room.players[0].isHost = true;
     } else {
       rooms.delete(roomId);
     }
