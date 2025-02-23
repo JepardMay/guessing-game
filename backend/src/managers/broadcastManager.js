@@ -27,6 +27,7 @@ export function broadcastRoomList(rooms) {
     host: roomData.host,
     players: roomData.players,
     gameOn: roomData.gameOn,
+    activePlayer: roomData.activePlayer,
   }));
   const roomListData = { type: DATA_TYPES.ROOM_LIST_UPDATE, rooms: roomList };
   broadcast(roomListData);
@@ -35,7 +36,8 @@ export function broadcastRoomList(rooms) {
 export function broadcastRoomUpdate(roomId, rooms) {
   const room = rooms.get(roomId);
   if (room) {
-    const roomData = { type: DATA_TYPES.ROOM_UPDATE, roomId, players: room.players, gameOn: room.gameOn };
+    const roomData = {
+      type: DATA_TYPES.ROOM_UPDATE, roomId, players: room.players, gameOn: room.gameOn, activePlayer: room.activePlayer };
     broadcast(roomData);
   }
 }

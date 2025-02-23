@@ -41,7 +41,7 @@ const stopDrawing = () => {
 
 // Draw on the canvas
 const draw = (evt) => {
-  if (!isDrawing) {
+  if (!isDrawing || !user.isActive) {
     return;
   }
 

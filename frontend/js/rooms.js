@@ -1,12 +1,13 @@
 import socket from './socket.js';
 import { makeId } from './utils.js';
 import { user } from './user.js';
+import { startTimer } from './timer.js';
 
 const createRoomBtn = document.getElementById('createRoom');
 const roomList = document.getElementById('roomList');
 const roomIdEl = document.getElementById('roomId');
 const roomPlayers = document.getElementById('roomPlayers');
-const activePlayer = document.getElementById('activePlayer');
+const activePlayerEl = document.getElementById('activePlayer');
 const startGameBtn = document.getElementById('startGame');
 const leaveRoomBtn = document.getElementById('leaveRoom');
 
@@ -41,11 +42,20 @@ const createJoinRoomItem = (room) => {
 };
 
 const createPlayerItem = (player, index) => {
+  let note = '';
+  if (user.id === player.id && user.isHost) {
+    note = '(You are the Host)';
+  } else if (user.id === player.id && !user.isHost) {
+    note = '(You)';
+  } else if (player.isHost) {
+    note = '(Host)';
+  }
+
   const playerItem = document.createElement('li');
   playerItem.classList.add('player');
   playerItem.innerHTML = `
     <div>
-      <p>${player.id} ${player.isHost ? '(Host)' : ''}</p>
+      <p>${player.id} ${note}</p>
       ${(!player.isHost && user.isHost) ? `
         <button class="btn-icon" data-player-id="${index}" aria-label="Remove the player">
           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="800px" height="800px" viewBox="-1.7 0 20.4 20.4" class="cf-icon-svg"><path d="M16.417 10.283A7.917 7.917 0 1 1 8.5 2.366a7.916 7.916 0 0 1 7.917 7.917zm-6.804.01 3.032-3.033a.792.792 0 0 0-1.12-1.12L8.494 9.173 5.46 6.14a.792.792 0 0 0-1.12 1.12l3.034 3.033-3.033 3.033a.792.792 0 0 0 1.12 1.119l3.032-3.033 3.033 3.033a.792.792 0 0 0 1.12-1.12z"/></svg>
@@ -57,7 +67,7 @@ const createPlayerItem = (player, index) => {
   return playerItem;
 };
 
-const activateScreen = (screen, roomId = '', hostId = '') => {
+const activateScreen = ({ screen, roomId = '', hostId = '', activePlayer = '' }) => {
   switch (screen) {
     case 'lobby':
       user.roomId = null;
@@ -75,6 +85,9 @@ const activateScreen = (screen, roomId = '', hostId = '') => {
       document.body.classList.add('room-is-active');
       break;
     case 'game':
+      user.isActive = activePlayer === user.id;
+      activePlayerEl.textContent = user.isActive ? 'You are' : activePlayer + ' is';
+      startTimer();
       document.body.classList.remove('room-is-active');
       document.body.classList.add('game-is-active');
       break;

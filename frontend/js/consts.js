@@ -10,6 +10,8 @@ export const DATA_TYPES = {
   SYSTEM: 'system',
   CHAT: 'chat',
   DRAW: 'draw',
+  CHANGE_PLAYER: 'changePlayer',
+  PLAYER_CHANGED: 'playerChanged',
 };
 
 export const DRAW_ACTIONS = {

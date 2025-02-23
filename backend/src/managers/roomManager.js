@@ -1,10 +1,10 @@
 import { DATA_TYPES } from '../constants.js';
-import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
+import { broadcastToRoomOnly, broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 
-export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string }, gameOn: boolean }[] }>
+export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean }[] }>
 
 export function createRoom(data, ws, connectedUsers) {
-  rooms.set(data.roomId, { host: data.user, players: [data.user], gameOn: false });
+  rooms.set(data.roomId, { host: data.user, players: [data.user], gameOn: false, activePlayer: data.user.id });
 
   // Update user data
   connectedUsers.get(ws).roomId = data.roomId;
@@ -92,10 +92,39 @@ export function startGame(data) {
   const room = rooms.get(data.roomId);
   if (room) {
     room.gameOn = true;
+    room.activePlayer = room.players[Math.floor(Math.random() * room.players.length)].id;
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
     broadcastSystemMessage(`The game in room ${data.roomId} has started.`);
+    broadcastSystemMessage(`${room.activePlayer} is drawing now.`);
+  }
+}
+
+export function changePlayer(data) {
+  const room = rooms.get(data.sender.roomId);
+  if (room) {
+    const prevActivePlayer = room.activePlayer;
+    let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)].id;
+    
+    if (room.players.length > 1) {
+      while (prevActivePlayer === newActivePlayer) {
+        newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)].id;
+      }
+    } else {
+      newActivePlayer = room.players[0].id;
+    }
+    room.activePlayer = newActivePlayer;
+
+    const message = {
+      type: DATA_TYPES.PLAYER_CHANGED,
+      activePlayer: room.activePlayer,
+    };
+
+    broadcastRoomUpdate(data.sender.roomId, rooms);
+    broadcastRoomList(rooms);
+    broadcastToRoomOnly(message, data.sender.roomId);
+    broadcastSystemMessage(`${room.activePlayer} is drawing now.`);
   }
 }
 

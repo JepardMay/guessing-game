@@ -5,6 +5,7 @@ import {
   leaveRoom,
   removePlayer,
   startGame,
+  changePlayer,
 } from '../managers/roomManager.js';
 import { broadcastToRoomOnly } from '../managers/broadcastManager.js';
 
@@ -28,6 +29,9 @@ export function handleMessage(data, ws, connectedUsers) {
     case DATA_TYPES.CHAT:
     case DATA_TYPES.DRAW:
       broadcastToRoomOnly(data, data.sender.roomId);
+      break;
+    case DATA_TYPES.CHANGE_PLAYER:
+      changePlayer(data);
       break;
     default:
       break;

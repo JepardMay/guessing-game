@@ -69,14 +69,14 @@ const handleRoomUpdateType = (data) => {
     updateCurrentRoom(data.players);
 
     if (data.gameOn) {
-      activateScreen('game');
+      activateScreen({ screen: 'game', activePlayer: data.activePlayer });
     }
   }
 };
 
 const handleRoomLeftType = (data) => {
   chatBox.innerHTML = '';
-  activateScreen('lobby');
+  activateScreen({ screen: 'lobby' });
 };
 
 const handleSystemType = (data) => {
@@ -97,8 +97,7 @@ const handleDrawType = (data) => {
 
 const drawOnCanvas = (data) => {
   if (data.action === DRAW_ACTIONS.CLEAR) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
+    clearTheCanvas();
   } else if (data.action === DRAW_ACTIONS.STOP) {
     ctx.stroke();
     ctx.beginPath();
@@ -110,6 +109,11 @@ const drawOnCanvas = (data) => {
     ctx.lineTo(data.x, data.y);
     ctx.stroke();
   }
+};
+
+const clearTheCanvas = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
 };
 
 const socket = (() => {
@@ -133,13 +137,17 @@ const socket = (() => {
           handleInitType(data);
           break;
         case DATA_TYPES.ROOM_CREATED:
-          activateScreen('room', data.roomId, data.host.id);
+          activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
           break;
         case DATA_TYPES.PLAYER_REMOVED:
           handleRoomLeftType(data);
           break;
+        case DATA_TYPES.PLAYER_CHANGED:
+          clearTheCanvas();
+          activateScreen({ screen: 'game', activePlayer: data.activePlayer });
+          break;
         case DATA_TYPES.ROOM_JOINED:
-          activateScreen('room', data.roomId, data.host.id);
+          activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
           break;
         case DATA_TYPES.ROOM_LIST_UPDATE:
           updateRoomList(data.rooms);
