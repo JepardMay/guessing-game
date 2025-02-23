@@ -1,4 +1,4 @@
-import { setupConnectionHandlers } from "../src/handlers/connectionHandler";
+import { setupConnectionHandlers } from '../src/handlers/connectionHandler';
 import {
   addUser,
   removeUser,
@@ -8,7 +8,7 @@ import {
 import { rooms, handleUserDisconnection } from '../src/managers/roomManager.js';
 import { broadcastRoomList } from '../src/managers/broadcastManager.js';
 import { handleMessage } from '../src/handlers/messageHandler.js';
-import { DATA_TYPES } from "../src/constants.js";
+import { DATA_TYPES } from '../src/constants.js';
 
 jest.mock('../src/managers/userManager.js');
 jest.mock('../src/managers/roomManager.js');
