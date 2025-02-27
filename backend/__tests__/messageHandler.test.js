@@ -6,6 +6,7 @@ import {
   leaveRoom,
   removePlayer,
   startGame,
+  changePlayer,
 } from '../src/managers/roomManager.js';
 import { broadcastToRoomOnly } from '../src/managers/broadcastManager.js';
 
@@ -114,9 +115,6 @@ describe('handleMessage', () => {
       type: DATA_TYPES.CHAT,
       message: 'Hi',
       sender: {
-        username: 'Alice',
-        id: 'user1',
-        isHost: true,
         roomId: 'room1',
       },
     };
@@ -129,11 +127,19 @@ describe('handleMessage', () => {
   test('should call broadcastToRoomOnly from DRAW message', () => {
     const data = {
       type: DATA_TYPES.DRAW,
-      action: 'draw',
-      x: 0,
-      y: 0,
-      lineWidth: 5,
-      strokeStyle: 'black',
+      sender: {
+        roomId: 'room1',
+      },
+    };
+
+    handleMessage(data, ws, connectedUsers);
+
+    expect(broadcastToRoomOnly).toHaveBeenCalledWith(data, data.sender.roomId);
+  });
+
+  test('should call changePlayer from CHANGE_PLAYER message', () => {
+    const data = {
+      type: DATA_TYPES.CHANGE_PLAYER,
       sender: {
         username: 'Alice',
         id: 'user1',
@@ -144,7 +150,7 @@ describe('handleMessage', () => {
 
     handleMessage(data, ws, connectedUsers);
 
-    expect(broadcastToRoomOnly).toHaveBeenCalledWith(data, data.sender.roomId);
+    expect(changePlayer).toHaveBeenCalledWith(data);
   });
 
   test('should do nothing for an unknown message type', () => {
@@ -160,5 +166,6 @@ describe('handleMessage', () => {
     expect(leaveRoom).not.toHaveBeenCalled();
     expect(startGame).not.toHaveBeenCalled();
     expect(broadcastToRoomOnly).not.toHaveBeenCalled();
+    expect(changePlayer).not.toHaveBeenCalled();
   });
 });
