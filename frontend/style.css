@@ -63,6 +63,23 @@ body {
   margin-bottom: 20px;
 }
 
+.username__block {
+  display: none;
+  margin: 0;
+  margin-bottom: 5px;
+}
+
+.username__block.is-shown {
+  display: block;
+}
+
+.username__block span {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--accent-color);
+}
+
 .join-room {
   display: flex;
   justify-content: space-between;
@@ -338,7 +355,7 @@ input::-webkit-inner-spin-button {
   border-radius: 38px;
 }
 
-.chat__input {
+.input__block {
   display: flex;
   width: 100%;
   margin-top: auto;
@@ -353,13 +370,13 @@ input::-webkit-inner-spin-button {
   border-radius: 4px;
 }
 
-.chat__input .input {
+.input__block .input {
   flex-grow: 1;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.chat__input .btn {
+.input__block .btn {
   padding: 10px 20px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;

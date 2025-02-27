@@ -27,7 +27,8 @@ const createMessage = (text, sender) => {
   const avatar = document.createElement('div');
   avatar.classList.add('message__avatar');
 
-  avatar.textContent = sender.id.slice(0, 2);
+  const avatarText = sender.name ? sender.name.slice(0, 2) : sender.id.slice(0, 2);
+  avatar.textContent = avatarText;
   message.appendChild(avatar);
 
   const bubble = document.createElement('p');

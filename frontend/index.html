@@ -18,6 +18,13 @@
     <!-- Lobby Section -->
     <div id="lobby" class="lobby">
       <div class="lobby__body">
+        <p class="username__block" id="usernameBlock">
+          Your username is <span id="usernameEl"></span>
+        </p>
+        <div class="input__block">
+          <input class="input" id="usernameInput" type="text" placeholder="Set your username..." />
+          <button class="btn" id="submitUsername">Set</button>
+        </div>
         <div class="lobby__header">
           <button id="createRoom" class="btn">Create New Room</button>
           <input class="input" type="text" name="searchRoom" id="searchRoom" placeholder="Search for a room">
@@ -69,7 +76,7 @@
       </section>
       <div class="chat">
         <div class="chat__box" id="chatBox"></div>
-        <div class="chat__input">
+        <div class="input__block">
           <input class="input" id="guessInput" type="text" placeholder="Enter your message..." />
           <button class="btn" id="submitGuess">Send</button>
         </div>
