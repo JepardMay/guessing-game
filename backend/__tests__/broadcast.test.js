@@ -1,4 +1,4 @@
-import { broadcast } from "../src/managers/broadcastManager.js";
+import { broadcast } from '../src/managers/broadcastManager.js';
 import {
   getConnectedUsers,
 } from '../src/managers/userManager.js';

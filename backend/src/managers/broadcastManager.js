@@ -16,9 +16,9 @@ export function broadcastToRoomOnly(data, roomId) {
   broadcast(data, (userData) => userData.roomId === roomId);
 }
 
-export function broadcastSystemMessage(message) {
+export function broadcastSystemMessage(message, roomId) {
   const systemMessage = { type: DATA_TYPES.SYSTEM, message };
-  broadcast(systemMessage);
+  broadcastToRoomOnly(systemMessage, roomId);
 }
 
 export function broadcastRoomList(rooms) {

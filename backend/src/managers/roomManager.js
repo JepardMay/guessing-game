@@ -14,7 +14,7 @@ export function createRoom(data, ws, connectedUsers) {
 
   broadcastRoomUpdate(data.roomId, rooms);
   broadcastRoomList(rooms);
-  broadcastSystemMessage(`${data.user.id} has created the room.`);
+  broadcastSystemMessage(`${data.user.id} has created the room.`, data.roomId);
 }
 
 export function joinRoom(data, ws, connectedUsers) {
@@ -30,7 +30,7 @@ export function joinRoom(data, ws, connectedUsers) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastSystemMessage(`${data.user.id} has joined the room.`);
+    broadcastSystemMessage(`${data.user.id} has joined the room.`, data.roomId);
   }
 }
 
@@ -44,7 +44,7 @@ export function leaveRoom(data, ws, connectedUsers) {
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
     checkRoom(data.roomId, data.user.id);
-    broadcastSystemMessage(`${data.user.id} has left the room.`);
+    broadcastSystemMessage(`${data.user.id} has left the room.`, data.roomId);
   }
 }
 
@@ -68,7 +68,7 @@ export function removePlayer(data, connectedUsers) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastSystemMessage(`${data.user.id} has been removed from the room.`);
+    broadcastSystemMessage(`${data.user.id} has been removed from the room.`, data.roomId);
   }
 }
 
@@ -96,8 +96,8 @@ export function startGame(data) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastSystemMessage(`The game in room ${data.roomId} has started.`);
-    broadcastSystemMessage(`${room.activePlayer} is drawing now.`);
+    broadcastSystemMessage(`The game in room ${data.roomId} has started.`, data.roomId);
+    broadcastSystemMessage(`${room.activePlayer} is drawing now.`, data.roomId);
   }
 }
 
@@ -124,21 +124,19 @@ export function changePlayer(data) {
     broadcastRoomUpdate(data.sender.roomId, rooms);
     broadcastRoomList(rooms);
     broadcastToRoomOnly(message, data.sender.roomId);
-    broadcastSystemMessage(`${room.activePlayer} is drawing now.`);
+    broadcastSystemMessage(`${room.activePlayer} is drawing now.`, data.sender.roomId);
   }
 }
 
 export function handleUserDisconnection(userData) {
-  if (userData.id) {
-    broadcastSystemMessage(`${userData.id} has disconnected.`);
+  if (userData.id && userData.roomId) {
+    broadcastSystemMessage(`${userData.id} has disconnected.`, userData.roomId);
+    
+    const room = rooms.get(userData.roomId);
 
-    if (userData.roomId) {
-      const room = rooms.get(userData.roomId);
-
-      if (room) {
-        room.players = room.players.filter((player) => player.id !== userData.id);
-        checkRoom(userData.roomId, userData.id);
-      }
+    if (room) {
+      room.players = room.players.filter((player) => player.id !== userData.id);
+      checkRoom(userData.roomId, userData.id);
     }
   }
 }
