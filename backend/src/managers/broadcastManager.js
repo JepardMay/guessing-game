@@ -1,20 +1,6 @@
 import { DATA_TYPES } from '../constants.js';
-import { getConnectedUsers } from './userManager.js';
-
-export function broadcast(data, filter = () => true) {
-  const message = JSON.stringify(data);
-  const connectedUsers = getConnectedUsers();
-
-  connectedUsers.forEach((userData, client) => {
-    if (client.readyState === WebSocket.OPEN && filter(userData)) {
-      client.send(message);
-    }
-  });
-}
-
-export function broadcastToRoomOnly(data, roomId) {
-  broadcast(data, (userData) => userData.roomId === roomId);
-}
+import { broadcast } from './broadcast.js';
+import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
 
 export function broadcastSystemMessage(message, roomId) {
   const systemMessage = { type: DATA_TYPES.SYSTEM, message };

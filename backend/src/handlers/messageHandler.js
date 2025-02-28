@@ -7,7 +7,7 @@ import {
   startGame,
   changePlayer,
 } from '../managers/roomManager.js';
-import { broadcastToRoomOnly } from '../managers/broadcastManager.js';
+import { broadcastToRoomOnly } from '../managers/broadcastToRoomOnly.js';
 
 export function handleMessage(data, ws, connectedUsers) {
   switch (data.type) {

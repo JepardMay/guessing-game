@@ -8,10 +8,10 @@ import {
   startGame,
   changePlayer,
 } from '../src/managers/roomManager.js';
-import { broadcastToRoomOnly } from '../src/managers/broadcastManager.js';
+import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
 
 jest.mock('../src/managers/roomManager.js');
-jest.mock('../src/managers/broadcastManager.js');
+jest.mock('../src/managers/broadcastToRoomOnly.js');
 
 describe('handleMessage', () => {
   let ws, connectedUsers;
