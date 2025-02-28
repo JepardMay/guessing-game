@@ -3,7 +3,7 @@ import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
 
 jest.mock('../src/managers/broadcast.js');
 
-describe('broadcastToRoomOnly', () => {
+describe('Broadcast To Room Only', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

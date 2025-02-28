@@ -1,12 +1,7 @@
 import { broadcast } from '../src/managers/broadcast.js';
-import {
-  getConnectedUsers,
-} from '../src/managers/userManager.js';
+import { getConnectedUsers } from '../src/managers/userManager.js';
 
-jest.mock('../src/managers/userManager.js', () => ({
-  ...jest.requireActual('../src/managers/userManager.js'),
-  getConnectedUsers: jest.fn(),
-}));
+jest.mock('../src/managers/userManager.js');
 
 global.WebSocket = {
   CONNECTING: 0,
