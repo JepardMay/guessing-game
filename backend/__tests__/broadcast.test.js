@@ -1,4 +1,4 @@
-import { broadcast } from '../src/managers/broadcastManager.js';
+import { broadcast } from '../src/managers/broadcast.js';
 import {
   getConnectedUsers,
 } from '../src/managers/userManager.js';
@@ -62,5 +62,106 @@ describe('Broadcast', () => {
 
     expect(client1.send).not.toHaveBeenCalled();
     expect(client2.send).toHaveBeenCalledWith(JSON.stringify(data));
+  });
+
+  test('should not send any messages when there are no connected users', () => {
+    getConnectedUsers.mockReturnValue(new Map());
+
+    const data = { message: 'Hello World' };
+    broadcast(data);
+
+    expect(getConnectedUsers().size).toBe(0);
+  });
+
+  test('should not send any messages when the filter excludes all users', () => {
+    const mockClients = new Map();
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user1', roomId: null });
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user2', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const data = { message: 'Hello World' };
+    const filter = () => false;
+
+    broadcast(data, filter);
+
+    mockClients.forEach((_, client) => {
+      expect(client.send).not.toHaveBeenCalled();
+    });
+  });
+
+  test('should handle invalid data gracefully', () => {
+    const mockClients = new Map();
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user1', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const invalidData = null;
+    broadcast(invalidData);
+
+    const client = Array.from(mockClients.keys())[0];
+    expect(client.send).toHaveBeenCalledWith(JSON.stringify(invalidData));
+  });
+
+  test('should handle errors in client.send gracefully', () => {
+    const mockClients = new Map();
+    const mockSend = jest.fn().mockImplementation(() => {
+      throw new Error('Failed to send message');
+    });
+    mockClients.set({ readyState: WebSocket.OPEN, send: mockSend }, { username: '', id: 'user1', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const data = { message: 'Hello World' };
+
+    expect(() => broadcast(data)).not.toThrow();
+
+    expect(mockSend).toHaveBeenCalled();
+  });
+
+  test('should handle large data without performance issues', () => {
+    const mockClients = new Map();
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user1', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const largeData = { message: 'a'.repeat(1000000) };
+    broadcast(largeData);
+
+    const client = Array.from(mockClients.keys())[0];
+    expect(client.send).toHaveBeenCalledWith(JSON.stringify(largeData));
+  });
+
+  test('should handle non-stringifiable data gracefully', () => {
+    const mockClients = new Map();
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user1', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const circularData = { message: 'Hello World' };
+    circularData.self = circularData;
+
+    expect(() => broadcast(circularData)).not.toThrow();
+
+    const client = Array.from(mockClients.keys())[0];
+    expect(client.send).not.toHaveBeenCalled();
+  });
+
+  test('should handle concurrent calls correctly', async () => {
+    const mockClients = new Map();
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user1', roomId: null });
+    mockClients.set({ readyState: WebSocket.OPEN, send: jest.fn() }, { username: '', id: 'user2', roomId: null });
+
+    getConnectedUsers.mockReturnValue(mockClients);
+
+    const data1 = { message: 'Hello World 1' };
+    const data2 = { message: 'Hello World 2' };
+
+    await Promise.all([broadcast(data1), broadcast(data2)]);
+
+    mockClients.forEach((_, client) => {
+      expect(client.send).toHaveBeenCalledWith(JSON.stringify(data1));
+      expect(client.send).toHaveBeenCalledWith(JSON.stringify(data2));
+    });
   });
 });
