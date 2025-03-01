@@ -7,6 +7,7 @@ export const DATA_TYPES = {
   CHAT: 'chat',
   DRAW: 'draw',
   SYSTEM: 'system',
+  ERROR: 'error',
   CHANGE_PLAYER: 'changePlayer',
   ROOM_CREATED: 'roomCreated',
   PLAYER_REMOVED: 'playerRemoved',

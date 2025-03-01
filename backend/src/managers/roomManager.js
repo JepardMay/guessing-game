@@ -5,6 +5,15 @@ import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from '
 export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean }[] }>
 
 export function createRoom(data, ws, connectedUsers) {
+  if (rooms.has(data.roomId)) {
+    ws.send(JSON.stringify({
+      type: DATA_TYPES.ERROR,
+      message: 'An error occurred while creating the room. Please, try again.',
+    }));
+    
+    return;
+  }
+
   rooms.set(data.roomId, { host: data.user, players: [data.user], gameOn: false, activePlayer: data.user });
 
   // Update user data
@@ -111,6 +120,7 @@ export function changePlayer(data) {
     let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
     
     if (room.players.length > 1) {
+
       while (prevActivePlayer.id === newActivePlayer.id) {
         newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
       }
