@@ -3,6 +3,7 @@ import { makeId } from './utils.js';
 import { user } from './user.js';
 import { startTimer } from './timer.js';
 
+const chatBox = document.getElementById('chatBox');
 const createRoomBtn = document.getElementById('createRoom');
 const roomList = document.getElementById('roomList');
 const roomIdEl = document.getElementById('roomId');
@@ -70,6 +71,7 @@ const createPlayerItem = (player, index) => {
 const activateScreen = ({ screen, roomId = '', hostId = '', activePlayer = null }) => {
   switch (screen) {
     case 'lobby':
+      chatBox.innerHTML = '';
       user.roomId = null;
       user.isHost = false;
       document.body.classList.remove('room-is-active');

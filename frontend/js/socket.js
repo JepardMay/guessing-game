@@ -1,71 +1,18 @@
 import { user } from "./user.js";
+import { SOCKET_URL } from './config.js';
+import { createWebSocket } from "./websocket.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
+import { insertMessage } from "./chat.js";
 import { activateScreen, updateRoomList, updateCurrentRoom } from "./rooms.js";
 
-const SOCKET_URL = 'wss://guessing-game-10bm.onrender.com';
-
 const loader = document.getElementById('loader');
-const chatBox = document.getElementById('chatBox');
 const canvas = document.getElementById('drawing-board');
 
 const ctx = canvas.getContext('2d');
 
-let lastSender = null; 
+const handleRoomCreated = (data) => activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
 
-const createMessage = (text, sender) => {
-  const message = document.createElement('div');
-  message.classList.add('message');
-
-  if (sender.id === user.id) {
-    message.classList.add('message--self');
-  }
-
-  if (sender.id !== lastSender?.id) {
-    message.classList.add('message--new');
-  }
-
-  const avatar = document.createElement('div');
-  avatar.classList.add('message__avatar');
-
-  const avatarText = sender.name ? sender.name.slice(0, 2) : sender.id.slice(0, 2);
-  avatar.textContent = avatarText;
-  message.appendChild(avatar);
-
-  const bubble = document.createElement('p');
-  bubble.classList.add('message__bubble');
-  bubble.textContent = text;
-  message.appendChild(bubble);
-
-  lastSender = sender;
-
-  return message;
-};
-
-const createInfoMessage = (message) => {
-  const infoMessage = document.createElement('p');
-  infoMessage.classList.add('info-message');
-  infoMessage.textContent = message;
-
-  return infoMessage;
-};
-
-const handleInitType = (data) => {
-  // Restore canvas data
-  data.canvasData.forEach((action) => {
-    drawOnCanvas(action);
-  });
-
-  // Restore chat messages
-  data.chatMessages.forEach((message) => {
-    if (message.type === DATA_TYPES.CHAT) {
-      handleChatType(message);
-    } else if (message.type === DATA_TYPES.SYSTEM) {
-      handleSystemType(message);
-    }
-  });
-};
-
-const handleRoomUpdateType = (data) => {
+const handleRoomUpdate = (data) => {
   if (user.roomId === data.roomId) {
     updateCurrentRoom(data.players);
 
@@ -75,22 +22,22 @@ const handleRoomUpdateType = (data) => {
   }
 };
 
-const handleRoomLeftType = (data) => {
-  chatBox.innerHTML = '';
-  activateScreen({ screen: 'lobby' });
+const handleRoomLeft = () => activateScreen({ screen: 'lobby' });
+
+const handlePlayerChanged = (data) => {
+  clearTheCanvas();
+  activateScreen({ screen: 'game', activePlayer: data.activePlayer });
 };
 
-const handleSystemType = (data) => {
-  const infoMessage = createInfoMessage(data.message);
-  chatBox.insertBefore(infoMessage, chatBox.firstChild);
-};
+const handleRoomListUpdate = (data) => updateRoomList(data.rooms);
 
-const handleChatType = (data) => {
-  const message = createMessage(data.message, data.sender);
-  chatBox.insertBefore(message, chatBox.firstChild);
-};
+const handleRoomJoined = (data) => activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
 
-const handleDrawType = (data) => {
+const handleSystem = (data) => insertMessage({ content: data.message }, true);
+
+const handleChat = (data) => insertMessage(data);
+
+const handleDraw = (data) => {
   if (data.sender.id === user.id) return;
 
   drawOnCanvas(data);
@@ -117,76 +64,43 @@ const clearTheCanvas = () => {
   ctx.beginPath();
 };
 
-const socket = (() => {
-  let socket;
+// Lookup table
+const messageHandlers = {
+  [DATA_TYPES.ROOM_CREATED]: handleRoomCreated,
+  [DATA_TYPES.PLAYER_REMOVED]: handleRoomLeft,
+  [DATA_TYPES.PLAYER_CHANGED]: handlePlayerChanged,
+  [DATA_TYPES.ROOM_JOINED]: handleRoomJoined,
+  [DATA_TYPES.ROOM_LIST_UPDATE]: handleRoomListUpdate,
+  [DATA_TYPES.ROOM_UPDATE]: handleRoomUpdate,
+  [DATA_TYPES.ROOM_LEFT]: handleRoomLeft,
+  [DATA_TYPES.SYSTEM]: handleSystem,
+  [DATA_TYPES.CHAT]: handleChat,
+  [DATA_TYPES.DRAW]: handleDraw,
+};
 
-  const connectWebSocket = () => {
-    socket = new WebSocket(SOCKET_URL);
-    loader.classList.remove('hidden');
+const onOpen = (event) => {
+  console.log('WebSocket connection established.');
+  loader.classList.add('hidden');
+};
 
-    socket.onopen = () => {
-      console.log('WebSocket connection established.');
-      loader.classList.add('hidden');
-      socket.send(JSON.stringify({ type: 'join', username: user.id }));
-    };
+const onMessage = (event) => {
+  const data = JSON.parse(event.data);
+  const handler = messageHandlers[data.type];
+  if (handler) handler(data);
+};
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+const onError = (error) => {
+  console.error('WebSocket error:', error);
+  loader.classList.add('hidden');
+  alert("WebSocket error occurred. Please reload the page.");
+};
 
-      switch (data.type) {
-        case DATA_TYPES.INIT:
-          handleInitType(data);
-          break;
-        case DATA_TYPES.ROOM_CREATED:
-          activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
-          break;
-        case DATA_TYPES.PLAYER_REMOVED:
-          handleRoomLeftType(data);
-          break;
-        case DATA_TYPES.PLAYER_CHANGED:
-          clearTheCanvas();
-          activateScreen({ screen: 'game', activePlayer: data.activePlayer });
-          break;
-        case DATA_TYPES.ROOM_JOINED:
-          activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
-          break;
-        case DATA_TYPES.ROOM_LIST_UPDATE:
-          updateRoomList(data.rooms);
-          break;
-        case DATA_TYPES.ROOM_UPDATE:
-          handleRoomUpdateType(data);
-          break;
-        case DATA_TYPES.ROOM_LEFT:
-          handleRoomLeftType(data);
-          break;
-        case DATA_TYPES.SYSTEM:
-          handleSystemType(data);
-          break;
-        case DATA_TYPES.CHAT:
-          handleChatType(data);
-          break;
-        case DATA_TYPES.DRAW:
-          handleDrawType(data);
-          break;
-      }
-    };
+const onClose = () => {
+  console.log('WebSocket connection closed. Reconnecting...');
+  loader.classList.remove('hidden');
+  setTimeout(() => createWebSocket(SOCKET_URL, onOpen, onMessage, onError, onClose), 3000); // Reconnect after 3 seconds
+};
 
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      loader.classList.add('hidden');
-      alert("WebSocket error occurred. Please reload the page.");
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed. Reconnecting...');
-      loader.classList.remove('hidden');
-      setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
-    };
-  };
-
-  // Initialize WebSocket connection
-  connectWebSocket();
-  return socket;
-})();
+const socket = createWebSocket(SOCKET_URL, onOpen, onMessage, onError, onClose);
 
 export default socket;

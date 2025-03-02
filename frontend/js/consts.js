@@ -1,5 +1,4 @@
 export const DATA_TYPES = {
-  INIT: 'init',
   ROOM_CREATED: 'roomCreated',
   ROOM_JOINED: 'roomJoined',
   PLAYER_REMOVED: 'playerRemoved',
