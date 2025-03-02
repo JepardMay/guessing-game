@@ -9,31 +9,19 @@ import {
 } from '../managers/roomManager.js';
 import { broadcastToRoomOnly } from '../managers/broadcastToRoomOnly.js';
 
+const messageHandlers = {
+  [DATA_TYPES.CREATE_ROOM]: (data, ws, connectedUsers) => createRoom(data, ws, connectedUsers),
+  [DATA_TYPES.JOIN_ROOM]: (data, ws, connectedUsers) => joinRoom(data, ws, connectedUsers),
+  [DATA_TYPES.REMOVE_PLAYER]: (data, ws, connectedUsers) => removePlayer(data, connectedUsers),
+  [DATA_TYPES.LEAVE_ROOM]: (data, ws, connectedUsers) => leaveRoom(data, ws, connectedUsers),
+  [DATA_TYPES.START_GAME]: (data, ws, connectedUsers) => startGame(data),
+  [DATA_TYPES.CHANGE_PLAYER]: (data, ws, connectedUsers) => changePlayer(data),
+  [DATA_TYPES.CHAT]: (data, ws, connectedUsers) => broadcastToRoomOnly(data, data.sender.roomId),
+  [DATA_TYPES.DRAW]: (data, ws, connectedUsers) => broadcastToRoomOnly(data, data.sender.roomId),
+  DEFAULT: (data) => console.warn(`No handler found for message type: ${data.type}`),
+};
+
 export function handleMessage(data, ws, connectedUsers) {
-  switch (data.type) {
-    case DATA_TYPES.CREATE_ROOM:
-      createRoom(data, ws, connectedUsers);
-      break;
-    case DATA_TYPES.JOIN_ROOM:
-      joinRoom(data, ws, connectedUsers);
-      break;
-    case DATA_TYPES.REMOVE_PLAYER:
-      removePlayer(data, connectedUsers);
-      break;
-    case DATA_TYPES.LEAVE_ROOM:
-      leaveRoom(data, ws, connectedUsers);
-      break;
-    case DATA_TYPES.START_GAME:
-      startGame(data);
-      break;
-    case DATA_TYPES.CHAT:
-    case DATA_TYPES.DRAW:
-      broadcastToRoomOnly(data, data.sender.roomId);
-      break;
-    case DATA_TYPES.CHANGE_PLAYER:
-      changePlayer(data);
-      break;
-    default:
-      break;
-  }
+  const handler = messageHandlers[data.type] || messageHandlers.DEFAULT;
+  handler(data, ws, connectedUsers);
 }
