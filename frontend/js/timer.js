@@ -1,4 +1,4 @@
-import socket from './socket.js';
+import sendMessage from './socket.js';
 import { user } from './user.js';
 import { DATA_TYPES } from './consts.js';
 
@@ -19,7 +19,7 @@ const startTimer = () => {
       clearInterval(interval);
 
       if (user.isActive) {
-        socket.send(JSON.stringify({ type: DATA_TYPES.CHANGE_PLAYER, sender: user }));
+        sendMessage({ type: DATA_TYPES.CHANGE_PLAYER, sender: user });
       }
     }
   }, 1000);

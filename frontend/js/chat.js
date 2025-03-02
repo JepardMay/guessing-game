@@ -1,4 +1,4 @@
-import socket from './socket.js';
+import sendMessage from './socket.js';
 import { DATA_TYPES } from './consts.js';
 import { user } from './user.js';
 
@@ -46,19 +46,16 @@ const createInfoMessage = (message) => {
 };
 
 const insertMessage = (message, isInfo = false) => {
-  const messageElement = isInfo ? createInfoMessage(message) : createMessage(message.content, message.sender);
+  console.log(message);
+  const messageElement = isInfo ? createInfoMessage(message.content) : createMessage(message.message, message.sender);
   chatBox.insertBefore(messageElement, chatBox.firstChild);
 };
 
 submitGuess.addEventListener('click', () => {
   const message = guessInput.value.trim();
   if (message) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: DATA_TYPES.CHAT, message, sender: user }));
-      guessInput.value = '';
-    } else {
-      console.error('WebSocket is not connected');
-    }
+    sendMessage({ type: DATA_TYPES.CHAT, message, sender: user });
+    guessInput.value = '';
   }
 });
 

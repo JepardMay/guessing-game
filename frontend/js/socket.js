@@ -10,6 +10,9 @@ const canvas = document.getElementById('drawing-board');
 
 const ctx = canvas.getContext('2d');
 
+let socket;
+let reconnectAttempts = 0;
+
 const handleRoomCreated = (data) => activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
 
 const handleRoomUpdate = (data) => {
@@ -81,6 +84,7 @@ const messageHandlers = {
 const onOpen = (event) => {
   console.log('WebSocket connection established.');
   loader.classList.add('hidden');
+  reconnectAttempts = 0;
 };
 
 const onMessage = (event) => {
@@ -98,9 +102,25 @@ const onError = (error) => {
 const onClose = () => {
   console.log('WebSocket connection closed. Reconnecting...');
   loader.classList.remove('hidden');
-  setTimeout(() => createWebSocket(SOCKET_URL, onOpen, onMessage, onError, onClose), 3000); // Reconnect after 3 seconds
+
+  const delay = Math.min(3000 * (2 ** reconnectAttempts), 30000); // Max delay of 30 seconds
+  reconnectAttempts += 1;
+
+  setTimeout(initializeWebSocket, delay);
 };
 
-const socket = createWebSocket(SOCKET_URL, onOpen, onMessage, onError, onClose);
+const initializeWebSocket = () => {
+  socket = createWebSocket(SOCKET_URL, onOpen, onMessage, onError, onClose);
+};
 
-export default socket;
+const sendMessage = (message) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(message));
+  } else {
+    console.error('Cannot send message: WebSocket is not connected.');
+  }
+};
+
+initializeWebSocket();
+
+export default sendMessage;

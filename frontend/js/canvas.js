@@ -1,4 +1,4 @@
-import socket from './socket.js';
+import sendMessage from './socket.js';
 import { user } from "./user.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 
@@ -68,24 +68,16 @@ const getEventCoordinates = (evt) => {
 
 // Send drawing data to the server
 const sendDrawingData = (action, x, y) => {
-  try {
-    const data = {
-      type: DATA_TYPES.DRAW,
-      action,
-      x,
-      y,
-      lineWidth,
-      strokeStyle,
-      sender: user
-    };
-    if (socket && typeof socket.send === 'function') {
-      socket.send(JSON.stringify(data));
-    } else {
-      console.error('Socket is not available or does not have a send method');
-    }
-  } catch (error) {
-    console.error('Error sending drawing data:', error);
-  }
+  const data = {
+    type: DATA_TYPES.DRAW,
+    action,
+    x,
+    y,
+    lineWidth,
+    strokeStyle,
+    sender: user
+  };
+  sendMessage(data);
 };
 
 

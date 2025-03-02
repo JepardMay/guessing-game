@@ -1,4 +1,4 @@
-import socket from './socket.js';
+import sendMessage from './socket.js';
 import { makeId } from './utils.js';
 import { user } from './user.js';
 import { startTimer } from './timer.js';
@@ -138,7 +138,7 @@ const handleSearchInput = (evt) => {
 createRoomBtn.addEventListener('click', () => {
   user.roomId = makeId(10);
   user.isHost = true;
-  socket.send(JSON.stringify({ type: 'createRoom', roomId: user.roomId, user: user }));
+  sendMessage({ type: 'createRoom', roomId: user.roomId, user: user });
 });
 
 searchInput.addEventListener('input', handleSearchInput);
@@ -147,7 +147,7 @@ roomList.addEventListener('click', (e) => {
   if (e.target.dataset.joinId) {
     const roomId = e.target.dataset.joinId;
     user.isHost = false;
-    socket.send(JSON.stringify({ type: 'joinRoom', roomId, user: user }));
+    sendMessage({ type: 'joinRoom', roomId, user: user });
   }
 });
 
@@ -157,17 +157,17 @@ roomPlayers.addEventListener('click', (e) => {
     const player = players[Number(playerId)];
 
     if (player) {
-      socket.send(JSON.stringify({ type: 'removePlayer', roomId: user.roomId, user: player }));
+      sendMessage({ type: 'removePlayer', roomId: user.roomId, user: player });
     }
   }
 });
 
 startGameBtn.addEventListener('click', () => {
-  socket.send(JSON.stringify({ type: 'startGame', roomId: user.roomId, user: user }));
+  sendMessage({ type: 'startGame', roomId: user.roomId, user: user });
 });
 
 leaveRoomBtn.addEventListener('click', () => {
-  socket.send(JSON.stringify({ type: 'leaveRoom', roomId: user.roomId, user: user }));
+  sendMessage({ type: 'leaveRoom', roomId: user.roomId, user: user });
 });
 
 export { activateScreen, updateRoomList, updateCurrentRoom };
