@@ -585,10 +585,22 @@ input::-webkit-inner-spin-button {
     font-size: 16px;
   }
 
+  .lobby__header {
+    flex-wrap: wrap;
+  }
+
+  .lobby__header .btn {
+    width: 100%;
+  }
+
   .room, 
   .game,
   .chat {
     width: 100%;
+  }
+
+  .input__block .input {
+    width: calc(100% - 20px);
   }
 
   .chat__box {
