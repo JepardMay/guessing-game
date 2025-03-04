@@ -11,6 +11,7 @@ export const DATA_TYPES = {
   DRAW: 'draw',
   CHANGE_PLAYER: 'changePlayer',
   PLAYER_CHANGED: 'playerChanged',
+  TIMER_UPDATE: 'timerUpdate',
 };
 
 export const DRAW_ACTIONS = {

@@ -568,6 +568,15 @@ input::-webkit-inner-spin-button {
   display: flex;
 }
 
+.timer {
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.timer.is-animated {
+  animation: timerAnimation 1s ease-in-out infinite;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;
@@ -629,5 +638,16 @@ input::-webkit-inner-spin-button {
   75%,  
   100% { 
     transform:translate(-55% , -55% ) rotate(90deg);
+  }
+}
+
+@keyframes timerAnimation {
+  0%,
+  100% {
+    background-color: var(--secondary-color);
+  }
+
+  50% {
+    background-color: var(--accent-color);
   }
 }

@@ -16,4 +16,7 @@ export const DATA_TYPES = {
   ROOM_LEFT: 'roomLeft',
   ROOM_LIST_UPDATE: 'roomListUpdate',
   ROOM_UPDATE: 'roomUpdate',
+  TIMER_UPDATE: 'timerUpdate',
 };
+
+export const COUNTDOWN_START = 60;

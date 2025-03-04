@@ -7,6 +7,7 @@ import { activateScreen, updateRoomList, updateCurrentRoom } from "./rooms.js";
 
 const loader = document.getElementById('loader');
 const canvas = document.getElementById('drawing-board');
+const timer = document.getElementById('countdown');
 
 const ctx = canvas.getContext('2d');
 
@@ -46,6 +47,15 @@ const handleDraw = (data) => {
   drawOnCanvas(data);
 };
 
+const handleTimerUpdate = (data) => {
+  if (data.countdown < 10 && !timer.classList.contains('is-animated')) {
+    timer.classList.add('is-animated');
+  } else if (data.countdown >= 10 && timer.classList.contains('is-animated')) {
+    timer.classList.remove('is-animated');
+  }
+  timer.textContent = data.countdown;
+};
+
 const drawOnCanvas = (data) => {
   if (data.action === DRAW_ACTIONS.CLEAR) {
     clearTheCanvas();
@@ -79,9 +89,10 @@ const messageHandlers = {
   [DATA_TYPES.SYSTEM]: handleSystem,
   [DATA_TYPES.CHAT]: handleChat,
   [DATA_TYPES.DRAW]: handleDraw,
+  [DATA_TYPES.TIMER_UPDATE]: handleTimerUpdate,
 };
 
-const onOpen = (event) => {
+const onOpen = () => {
   console.log('WebSocket connection established.');
   loader.classList.add('hidden');
   reconnectAttempts = 0;

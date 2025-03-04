@@ -202,5 +202,60 @@ describe('roomManager', () => {
     expect(rooms.get(mockData.roomId).players[0].id).toBe(mockConnectedUsers.get(mockWs).id);
     expect(rooms.get(mockData.roomId).players[0].name).toBe(mockConnectedUsers.get(mockWs).username);
   });
+
+  test('joinRoom should join an existing room successfully when a valid roomId and user are provided', () => {
+    const mockData = {
+      roomId: 'room123',
+      user: { id: 'user2', name: 'Jane' }
+    };
+    const mockWs = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs, {});
+
+    // Create an existing room
+    const existingRoom = { host: { id: 'user1', name: 'John' }, players: [{ id: 'user1', name: 'John' }], gameOn: false };
+    rooms.set(mockData.roomId, existingRoom);
+
+    joinRoom(mockData, mockWs, mockConnectedUsers);
+
+    expect(rooms.get(mockData.roomId).players).toContainEqual(mockData.user);
+    expect(mockConnectedUsers.get(mockWs)).toEqual({
+      roomId: mockData.roomId,
+      id: mockData.user.id,
+      username: mockData.user.name
+    });
+
+    expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify({
+      type: DATA_TYPES.ROOM_JOINED,
+      roomId: mockData.roomId,
+      host: existingRoom.host
+    }));
+
+    expect(broadcastRoomUpdate).toHaveBeenCalledWith(mockData.roomId, rooms);
+    expect(broadcastRoomList).toHaveBeenCalledWith(rooms);
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockData.user.name} has joined the room.`,
+      mockData.roomId
+    );
+  });
+
+  test('joinRoom should not join a non-existent room', () => {
+    const mockData = {
+      roomId: 'nonExistentRoom',
+      user: { id: 'user1', name: 'John' }
+    };
+    const mockWs = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs, {});
+
+    joinRoom(mockData, mockWs, mockConnectedUsers);
+
+    expect(rooms.get(mockData.roomId)).toBeUndefined();
+    expect(mockConnectedUsers.get(mockWs)).toEqual({});
+    expect(mockWs.send).not.toHaveBeenCalled();
+    expect(broadcastRoomUpdate).not.toHaveBeenCalled();
+    expect(broadcastRoomList).not.toHaveBeenCalled();
+    expect(broadcastSystemMessage).not.toHaveBeenCalled();
+  });
 });
 

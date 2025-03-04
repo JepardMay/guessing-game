@@ -1,8 +1,8 @@
-import { DATA_TYPES } from '../constants.js';
+import { DATA_TYPES, COUNTDOWN_START } from '../constants.js';
 import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 
-export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean }[] }>
+export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean, timer: setInterval}[] }>
 
 export function createRoom(data, ws, connectedUsers) {
   if (rooms.has(data.roomId)) {
@@ -99,6 +99,33 @@ export function checkRoom(roomId, userId) {
   broadcastRoomUpdate(roomId, rooms);
   broadcastRoomList(rooms);
 }
+const startTimer = (roomId) => {
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  let countdown = COUNTDOWN_START;
+
+  broadcastToRoomOnly(roomId, {
+    type: DATA_TYPES.TIMER_UPDATE,
+    countdown,
+  });
+
+  room.timer = setInterval(() => {
+    countdown--;
+
+    const message = {
+      type: DATA_TYPES.TIMER_UPDATE,
+      countdown,
+    };
+
+    broadcastToRoomOnly(message, roomId);
+
+    if (countdown <= 0) {
+      clearInterval(room.timer);
+      changePlayer(roomId);
+    }
+  }, 1000);
+};
 
 export function startGame(data) {
   const room = rooms.get(data.roomId);
@@ -110,11 +137,12 @@ export function startGame(data) {
     broadcastRoomList(rooms);
     broadcastSystemMessage(`The game in room ${data.roomId} has started.`, data.roomId);
     broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, data.roomId);
+    startTimer(data.roomId);
   }
 }
 
-export function changePlayer(data) {
-  const room = rooms.get(data.sender.roomId);
+export function changePlayer(roomId) {
+  const room = rooms.get(roomId);
   if (room) {
     const prevActivePlayer = room.activePlayer;
     let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
@@ -134,10 +162,11 @@ export function changePlayer(data) {
       activePlayer: room.activePlayer,
     };
 
-    broadcastRoomUpdate(data.sender.roomId, rooms);
+    broadcastRoomUpdate(roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastToRoomOnly(message, data.sender.roomId);
-    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, data.sender.roomId);
+    broadcastToRoomOnly(message, roomId);
+    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, roomId);
+    startTimer(roomId);
   }
 }
 

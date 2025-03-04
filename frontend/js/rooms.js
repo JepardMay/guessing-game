@@ -1,7 +1,6 @@
 import sendMessage from './socket.js';
 import { makeId } from './utils.js';
 import { user } from './user.js';
-import { startTimer } from './timer.js';
 
 const chatBox = document.getElementById('chatBox');
 const createRoomBtn = document.getElementById('createRoom');
@@ -89,7 +88,6 @@ const activateScreen = ({ screen, roomId = '', hostId = '', activePlayer = null 
     case 'game':
       user.isActive = activePlayer.id === user.id;
       activePlayerEl.textContent = user.isActive ? 'You are' : (activePlayer.name ? activePlayer.name : activePlayer.id) + ' is';
-      startTimer();
       document.body.classList.remove('room-is-active');
       document.body.classList.add('game-is-active');
       break;

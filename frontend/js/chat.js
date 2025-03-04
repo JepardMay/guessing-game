@@ -46,7 +46,6 @@ const createInfoMessage = (message) => {
 };
 
 const insertMessage = (message, isInfo = false) => {
-  console.log(message);
   const messageElement = isInfo ? createInfoMessage(message.content) : createMessage(message.message, message.sender);
   chatBox.insertBefore(messageElement, chatBox.firstChild);
 };
