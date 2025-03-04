@@ -10,25 +10,32 @@ const roomPlayers = document.getElementById('roomPlayers');
 const activePlayerEl = document.getElementById('activePlayer');
 const startGameBtn = document.getElementById('startGame');
 const leaveRoomBtn = document.getElementById('leaveRoom');
-
 const searchInput = document.getElementById('searchRoom');
 
-let rooms = []; // { host: string, players[], gameOn: boolean }[]
-let players = []; // { username: string, id: string, isHost: boolean, roomId: string }[]
+const state = {
+  rooms: [], // { host: string, players[], gameOn: boolean }
+  players: [], // { username: string, id: string, isHost: boolean, roomId: string }[]
+};
 
-const filterRooms = (searchText) => {
-  return rooms.filter((room) => {
-    return (
-      room.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
-      room.host.id.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
+const getRooms = () => state.rooms;
+const setRooms = (data) => {
+  state.rooms = [...data];
+};
+
+const getPlayers = () => state.players;
+const setPlayers = (data) => {
+  state.players = [...data];
+};
+
+const createElement = (tag, className, innerHTML) => {
+  const element = document.createElement(tag);
+  element.classList.add(className);
+  if (innerHTML) element.innerHTML = innerHTML;
+  return element;
 };
 
 const createJoinRoomItem = (room) => {
-  const roomItem = document.createElement('li');
-  roomItem.classList.add('join-room');
-  roomItem.innerHTML = `
+  const roomItem = createElement('li', 'join-room', `
     <div>
       <p>Room: <span>${room.roomId}</span></p>
       <p>Host: <span>${room.host.name ? room.host.name : room.host.id}</span></p>
@@ -36,7 +43,7 @@ const createJoinRoomItem = (room) => {
     </div>
 
     <button class="btn" data-join-id="${room.roomId}">Join</button>
-  `;
+  `);
 
   return roomItem;
 };
@@ -51,9 +58,7 @@ const createPlayerItem = (player, index) => {
     note = '(Host)';
   }
 
-  const playerItem = document.createElement('li');
-  playerItem.classList.add('player');
-  playerItem.innerHTML = `
+  const playerItem = createElement('li', 'player', `
     <div>
       <p>${player.name ? player.name : player.id} ${note}</p>
       ${(!player.isHost && user.isHost) ? `
@@ -62,43 +67,51 @@ const createPlayerItem = (player, index) => {
         </button>
       ` : ''}
     </div>
-  `;
+  `);
 
   return playerItem;
 };
 
+const activateLobbyScreen = () => {
+  user.roomId = null;
+  user.isHost = false;
+  document.body.classList.remove('room-is-active');
+  document.body.classList.remove('game-is-active');
+  roomPlayers.innerHTML = '';
+  chatBox.innerHTML = '';
+};
+
+const activateRoomScreen = (roomId, hostId) => {
+  roomIdEl.textContent = roomId;
+  user.roomId = roomId;
+  user.isHost = hostId === user.id;
+  startGameBtn.disabled = !user.isHost;
+  document.body.classList.remove('game-is-active');
+  document.body.classList.add('room-is-active');
+};
+
+const activateGameScreen = (activePlayer) => {
+  user.isActive = activePlayer.id === user.id;
+  const activePlayerName = activePlayer.name || activePlayer.id;
+  activePlayerEl.textContent = user.isActive ? 'You are' : `${activePlayerName} is`;
+  document.body.classList.remove('room-is-active');
+  document.body.classList.add('game-is-active');
+};
+
+const screenHandlers = {
+  'lobby': (roomId, hostId, activePlayer) => activateLobbyScreen(),
+  'room': (roomId, hostId, activePlayer) => activateRoomScreen(roomId, hostId),
+  'game': (roomId, hostId, activePlayer) => activateGameScreen(activePlayer),
+};
+
 const activateScreen = ({ screen, roomId = '', hostId = '', activePlayer = null }) => {
-  switch (screen) {
-    case 'lobby':
-      chatBox.innerHTML = '';
-      user.roomId = null;
-      user.isHost = false;
-      document.body.classList.remove('room-is-active');
-      document.body.classList.remove('game-is-active');
-      roomPlayers.innerHTML = '';
-      break;
-    case 'room':
-      roomIdEl.textContent = roomId;
-      user.roomId = roomId;
-      user.isHost = hostId === user.id;
-      startGameBtn.disabled = !user.isHost;
-      document.body.classList.remove('game-is-active');
-      document.body.classList.add('room-is-active');
-      break;
-    case 'game':
-      user.isActive = activePlayer.id === user.id;
-      activePlayerEl.textContent = user.isActive ? 'You are' : (activePlayer.name ? activePlayer.name : activePlayer.id) + ' is';
-      document.body.classList.remove('room-is-active');
-      document.body.classList.add('game-is-active');
-      break;
-    default:
-      break;
-  }
+  const handler = screenHandlers[screen];
+  if (handler) handler(roomId, hostId, activePlayer);
 };
 
 const updateRoomList = (data) => {
-  rooms = [...data];
-  renderRoomList(rooms);
+  setRooms(data);
+  renderRoomList(getRooms());
 };
 
 const renderRoomList = (rooms) => {
@@ -112,24 +125,47 @@ const renderRoomList = (rooms) => {
 };
 
 const updateCurrentRoom = (data) => {
-  players = data;
-  user.isHost = players[0].id === user.id && players[0].isHost;
+  setPlayers(data);
+  user.isHost = getPlayers()[0].id === user.id && getPlayers()[0].isHost;
   startGameBtn.disabled = !user.isHost;
   roomPlayers.innerHTML = '';
-  players.forEach((player, index) => {
+  getPlayers().forEach((player, index) => {
     const playerItem = createPlayerItem(player, index);
     roomPlayers.appendChild(playerItem);
   });
 };
 
+const filterRooms = (searchText) => {
+  return getRooms().filter((room) => {
+    return (
+      room.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
+      room.host.id.toLowerCase().includes(searchText.toLowerCase())
+    );
+  });
+};
+
 const handleSearchInput = (evt) => {
   const searchText = evt.target.value.trim();
+  const filteredRooms = searchText ? filterRooms(searchText) : getRooms();
+  renderRoomList(filteredRooms);
+};
 
-  if (searchText !== '') {
-    const filteredRooms = filterRooms(searchText);
-    renderRoomList(filteredRooms);
-  } else {
-    renderRoomList(rooms);
+const handleRoomListClick = (e) => {
+  if (e.target.dataset.joinId) {
+    const roomId = e.target.dataset.joinId;
+    user.isHost = false;
+    sendMessage({ type: 'joinRoom', roomId, user: user });
+  }
+};
+
+const handleRoomPlayersClick = (e) => {
+  const playerId = e.target.closest('.btn-icon')?.dataset.playerId;
+  if (playerId && user.isHost) {
+    const player = getPlayers()[Number(playerId)];
+
+    if (player) {
+      sendMessage({ type: 'removePlayer', roomId: user.roomId, user: player });
+    }
   }
 };
 
@@ -141,24 +177,9 @@ createRoomBtn.addEventListener('click', () => {
 
 searchInput.addEventListener('input', handleSearchInput);
 
-roomList.addEventListener('click', (e) => {
-  if (e.target.dataset.joinId) {
-    const roomId = e.target.dataset.joinId;
-    user.isHost = false;
-    sendMessage({ type: 'joinRoom', roomId, user: user });
-  }
-});
+roomList.addEventListener('click', handleRoomListClick);
 
-roomPlayers.addEventListener('click', (e) => {
-  const playerId = e.target.closest('.btn-icon')?.dataset.playerId;
-  if (playerId && user.isHost) {
-    const player = players[Number(playerId)];
-
-    if (player) {
-      sendMessage({ type: 'removePlayer', roomId: user.roomId, user: player });
-    }
-  }
-});
+roomPlayers.addEventListener('click', handleRoomPlayersClick);
 
 startGameBtn.addEventListener('click', () => {
   sendMessage({ type: 'startGame', roomId: user.roomId, user: user });
