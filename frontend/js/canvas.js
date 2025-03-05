@@ -83,7 +83,7 @@ const sendDrawingData = (action, x, y) => {
 
 // Handle toolbar events
 const handleToolbarClick = (e) => {
-  if (e.target.id === 'clear') {
+  if (e.target.id === 'clear' && user.isActive) {
     // Send "clear" action to the server
     sendDrawingData(DRAW_ACTIONS.CLEAR);
     ctx.clearRect(0, 0, canvas.width, canvas.height);

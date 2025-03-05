@@ -103,6 +103,8 @@ const startTimer = (roomId) => {
   const room = rooms.get(roomId);
   if (!room) return;
 
+  if (room.timer) clearInterval(room.timer);
+
   let countdown = COUNTDOWN_START;
 
   broadcastToRoomOnly(roomId, {
@@ -122,7 +124,7 @@ const startTimer = (roomId) => {
 
     if (countdown <= 0) {
       clearInterval(room.timer);
-      changePlayer(roomId);
+      changePlayer({ roomId });
     }
   }, 1000);
 };
@@ -141,32 +143,41 @@ export function startGame(data) {
   }
 }
 
-export function changePlayer(roomId) {
-  const room = rooms.get(roomId);
+export function changePlayer(data) {
+  const room = rooms.get(data.roomId);
   if (room) {
-    const prevActivePlayer = room.activePlayer;
-    let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
-    
-    if (room.players.length > 1) {
-
-      while (prevActivePlayer.id === newActivePlayer.id) {
-        newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
+    if (data.selectedUser) {
+      const selectedUser = room.players.find((player) => player.id === data.selectedUser.id);
+      if (selectedUser) {
+        room.activePlayer = selectedUser;
+        broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} guessed correctly!`, data.roomId);
       }
     } else {
-      newActivePlayer = room.players[0];
+      const prevActivePlayer = room.activePlayer;
+      let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
+    
+      if (room.players.length > 1) {
+
+        while (prevActivePlayer.id === newActivePlayer.id) {
+          newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
+        }
+      } else {
+        newActivePlayer = room.players[0];
+      }
+
+      room.activePlayer = newActivePlayer;
     }
-    room.activePlayer = newActivePlayer;
 
     const message = {
       type: DATA_TYPES.PLAYER_CHANGED,
       activePlayer: room.activePlayer,
     };
 
-    broadcastRoomUpdate(roomId, rooms);
+    broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastToRoomOnly(message, roomId);
-    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, roomId);
-    startTimer(roomId);
+    broadcastToRoomOnly(message, data.roomId);
+    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, data.roomId);
+    startTimer(data.roomId);
   }
 }
 

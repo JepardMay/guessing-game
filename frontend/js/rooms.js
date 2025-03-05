@@ -1,4 +1,5 @@
 import sendMessage from './socket.js';
+import { DATA_TYPES } from './consts.js';
 import { makeId } from './utils.js';
 import { user } from './user.js';
 
@@ -154,7 +155,7 @@ const handleRoomListClick = (e) => {
   if (e.target.dataset.joinId) {
     const roomId = e.target.dataset.joinId;
     user.isHost = false;
-    sendMessage({ type: 'joinRoom', roomId, user: user });
+    sendMessage({ type: DATA_TYPES.JOIN_ROOM, roomId, user: user });
   }
 };
 
@@ -164,7 +165,7 @@ const handleRoomPlayersClick = (e) => {
     const player = getPlayers()[Number(playerId)];
 
     if (player) {
-      sendMessage({ type: 'removePlayer', roomId: user.roomId, user: player });
+      sendMessage({ type: DATA_TYPES.REMOVE_PLAYER, roomId: user.roomId, user: player });
     }
   }
 };
@@ -172,7 +173,7 @@ const handleRoomPlayersClick = (e) => {
 createRoomBtn.addEventListener('click', () => {
   user.roomId = makeId(10);
   user.isHost = true;
-  sendMessage({ type: 'createRoom', roomId: user.roomId, user: user });
+  sendMessage({ type: DATA_TYPES.CREATE_ROOM, roomId: user.roomId, user: user });
 });
 
 searchInput.addEventListener('input', handleSearchInput);
@@ -182,11 +183,11 @@ roomList.addEventListener('click', handleRoomListClick);
 roomPlayers.addEventListener('click', handleRoomPlayersClick);
 
 startGameBtn.addEventListener('click', () => {
-  sendMessage({ type: 'startGame', roomId: user.roomId, user: user });
+  sendMessage({ type: DATA_TYPES.START_GAME, roomId: user.roomId, user: user });
 });
 
 leaveRoomBtn.addEventListener('click', () => {
-  sendMessage({ type: 'leaveRoom', roomId: user.roomId, user: user });
+  sendMessage({ type: DATA_TYPES.LEAVE_ROOM, roomId: user.roomId, user: user });
 });
 
-export { activateScreen, updateRoomList, updateCurrentRoom };
+export { activateScreen, updateRoomList, updateCurrentRoom, getPlayers };
