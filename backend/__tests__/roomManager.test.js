@@ -1,6 +1,5 @@
 import { rooms, createRoom, joinRoom } from '../src/managers/roomManager.js';
 import { DATA_TYPES } from '../src/constants.js';
-import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from '../src/managers/broadcastManager.js';
 
 jest.mock('../src/managers/broadcastToRoomOnly.js');

@@ -1,5 +1,6 @@
 import { addUser, removeUser, getUser, getConnectedUsers } from '../managers/userManager.js';
-import { rooms, handleUserDisconnection } from '../managers/roomManager.js';
+import { rooms } from '../managers/roomManager.js';
+import { handleUserDisconnection } from '../managers/playerManager.js';
 import { broadcastRoomList } from '../managers/broadcastManager.js';
 import { handleMessage } from './messageHandler.js';
 

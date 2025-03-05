@@ -1,12 +1,7 @@
 import { DATA_TYPES } from '../constants.js';
-import {
-  createRoom,
-  joinRoom,
-  leaveRoom,
-  removePlayer,
-  startGame,
-  changePlayer,
-} from '../managers/roomManager.js';
+import { createRoom, joinRoom, leaveRoom } from '../managers/roomManager.js';
+import { removePlayer } from '../managers/playerManager.js';
+import { startGame, changePlayer } from '../managers/gameManager.js';
 import { broadcastToRoomOnly } from '../managers/broadcastToRoomOnly.js';
 
 const messageHandlers = {

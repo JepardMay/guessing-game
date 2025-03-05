@@ -24,7 +24,7 @@ const createMessage = (text, sender) => {
   const avatar = document.createElement('div');
   avatar.classList.add('message__avatar');
 
-  const avatarText = sender.name ? sender.name.slice(0, 2) : sender.id.slice(0, 2);
+  const avatarText = (sender.name || sender.id).slice(0, 2);
   avatar.textContent = avatarText;
   message.appendChild(avatar);
 
@@ -33,7 +33,7 @@ const createMessage = (text, sender) => {
   bubble.textContent = text;
   message.appendChild(bubble);
 
-  if (user.isActive) {
+  if (user.isActive && sender.id !== user.id) {
     const selectGuess = document.createElement('button');
     selectGuess.className = 'btn btn--xs';
     selectGuess.textContent = 'Select As Correct';

@@ -1,5 +1,4 @@
-import { DATA_TYPES, COUNTDOWN_START } from '../constants.js';
-import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
+import { DATA_TYPES } from '../constants.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 
 export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean, timer: setInterval}[] }>
@@ -25,7 +24,7 @@ export function createRoom(data, ws, connectedUsers) {
 
   broadcastRoomUpdate(data.roomId, rooms);
   broadcastRoomList(rooms);
-  broadcastSystemMessage(`${data.user.name ? data.user.name : data.user.id} has created the room.`, data.roomId);
+  broadcastSystemMessage(`${data.user.name || data.user.id} has created the room.`, data.roomId);
 }
 
 export function joinRoom(data, ws, connectedUsers) {
@@ -42,7 +41,7 @@ export function joinRoom(data, ws, connectedUsers) {
 
     broadcastRoomUpdate(data.roomId, rooms);
     broadcastRoomList(rooms);
-    broadcastSystemMessage(`${data.user.name ? data.user.name : data.user.id} has joined the room.`, data.roomId);
+    broadcastSystemMessage(`${data.user.name || data.user.id} has joined the room.`, data.roomId);
   }
 }
 
@@ -56,31 +55,7 @@ export function leaveRoom(data, ws, connectedUsers) {
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
     checkRoom(data.roomId, data.user.id);
-    broadcastSystemMessage(`${data.user.name ? data.user.name : data.user.id} has left the room.`, data.roomId);
-  }
-}
-
-export function removePlayer(data, connectedUsers) {
-  const room = rooms.get(data.roomId);
-  if (room) {
-    const removedPlayer = room.players.find((player) => player.id === data.user.id);
-    room.players = room.players.filter((player) => player.id !== data.user.id);
-
-    if (removedPlayer) {
-      const removedPlayerClient = Array.from(connectedUsers.keys()).find(
-        (client) => connectedUsers.get(client).id === removedPlayer.id
-      );
-
-      if (removedPlayerClient) {
-        removedPlayerClient.send(
-          JSON.stringify({ type: DATA_TYPES.PLAYER_REMOVED, roomId: data.roomId })
-        );
-      }
-    }
-
-    broadcastRoomUpdate(data.roomId, rooms);
-    broadcastRoomList(rooms);
-    broadcastSystemMessage(`${data.user.name ? data.user.name : data.user.id} has been removed from the room.`, data.roomId);
+    broadcastSystemMessage(`${data.user.name || data.user.id} has left the room.`, data.roomId);
   }
 }
 
@@ -98,98 +73,4 @@ export function checkRoom(roomId, userId) {
 
   broadcastRoomUpdate(roomId, rooms);
   broadcastRoomList(rooms);
-}
-const startTimer = (roomId) => {
-  const room = rooms.get(roomId);
-  if (!room) return;
-
-  if (room.timer) clearInterval(room.timer);
-
-  let countdown = COUNTDOWN_START;
-
-  broadcastToRoomOnly(roomId, {
-    type: DATA_TYPES.TIMER_UPDATE,
-    countdown,
-  });
-
-  room.timer = setInterval(() => {
-    countdown--;
-
-    const message = {
-      type: DATA_TYPES.TIMER_UPDATE,
-      countdown,
-    };
-
-    broadcastToRoomOnly(message, roomId);
-
-    if (countdown <= 0) {
-      clearInterval(room.timer);
-      changePlayer({ roomId });
-    }
-  }, 1000);
-};
-
-export function startGame(data) {
-  const room = rooms.get(data.roomId);
-  if (room) {
-    room.gameOn = true;
-    room.activePlayer = room.players[Math.floor(Math.random() * room.players.length)];
-
-    broadcastRoomUpdate(data.roomId, rooms);
-    broadcastRoomList(rooms);
-    broadcastSystemMessage(`The game in room ${data.roomId} has started.`, data.roomId);
-    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, data.roomId);
-    startTimer(data.roomId);
-  }
-}
-
-export function changePlayer(data) {
-  const room = rooms.get(data.roomId);
-  if (room) {
-    if (data.selectedUser) {
-      const selectedUser = room.players.find((player) => player.id === data.selectedUser.id);
-      if (selectedUser) {
-        room.activePlayer = selectedUser;
-        broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} guessed correctly!`, data.roomId);
-      }
-    } else {
-      const prevActivePlayer = room.activePlayer;
-      let newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
-    
-      if (room.players.length > 1) {
-
-        while (prevActivePlayer.id === newActivePlayer.id) {
-          newActivePlayer = room.players[Math.floor(Math.random() * room.players.length)];
-        }
-      } else {
-        newActivePlayer = room.players[0];
-      }
-
-      room.activePlayer = newActivePlayer;
-    }
-
-    const message = {
-      type: DATA_TYPES.PLAYER_CHANGED,
-      activePlayer: room.activePlayer,
-    };
-
-    broadcastRoomUpdate(data.roomId, rooms);
-    broadcastRoomList(rooms);
-    broadcastToRoomOnly(message, data.roomId);
-    broadcastSystemMessage(`${room.activePlayer.name ? room.activePlayer.name : room.activePlayer.id} is drawing now.`, data.roomId);
-    startTimer(data.roomId);
-  }
-}
-
-export function handleUserDisconnection(userData) {
-  if (userData.id && userData.roomId) {
-    broadcastSystemMessage(`${userData.username ? userData.username : userData.id} has disconnected.`, userData.roomId);
-    
-    const room = rooms.get(userData.roomId);
-
-    if (room) {
-      room.players = room.players.filter((player) => player.id !== userData.id);
-      checkRoom(userData.roomId, userData.id);
-    }
-  }
 }
