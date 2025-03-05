@@ -4,6 +4,7 @@ import { createWebSocket } from "./websocket.js";
 import { DATA_TYPES, DRAW_ACTIONS } from './consts.js';
 import { insertMessage } from "./chat.js";
 import { activateScreen, updateRoomList, updateCurrentRoom } from "./rooms.js";
+import { showModal, hideModal } from "./modal.js";
 
 const loader = document.getElementById('loader');
 const canvas = document.getElementById('drawing-board');
@@ -56,6 +57,8 @@ const handleTimerUpdate = (data) => {
   timer.textContent = data.countdown;
 };
 
+const handleError = (data) => showModal({ message: data.message });
+
 const drawOnCanvas = (data) => {
   if (data.action === DRAW_ACTIONS.CLEAR) {
     clearTheCanvas();
@@ -90,10 +93,11 @@ const messageHandlers = {
   [DATA_TYPES.CHAT]: handleChat,
   [DATA_TYPES.DRAW]: handleDraw,
   [DATA_TYPES.TIMER_UPDATE]: handleTimerUpdate,
+  [DATA_TYPES.ERROR]: handleError,
 };
 
 const onOpen = () => {
-  console.log('WebSocket connection established.');
+  hideModal();
   loader.classList.add('hidden');
   reconnectAttempts = 0;
 };
@@ -105,13 +109,12 @@ const onMessage = (event) => {
 };
 
 const onError = (error) => {
-  console.error('WebSocket error:', error);
   loader.classList.add('hidden');
-  alert("WebSocket error occurred. Please reload the page.");
+  showModal({ message: `WebSocket error occurred. ${error}` });
 };
 
 const onClose = () => {
-  console.log('WebSocket connection closed. Reconnecting...');
+  showModal({ message: 'WebSocket connection closed. Reconnecting...' });
   loader.classList.remove('hidden');
 
   const delay = Math.min(3000 * (2 ** reconnectAttempts), 30000); // Max delay of 30 seconds

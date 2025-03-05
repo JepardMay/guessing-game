@@ -7,6 +7,7 @@ export const DATA_TYPES = {
   ROOM_LEFT: 'roomLeft',
   START_GAME: 'startGame',
   SYSTEM: 'system',
+  ERROR: 'error',
   CHAT: 'chat',
   DRAW: 'draw',
   CHANGE_PLAYER: 'changePlayer',

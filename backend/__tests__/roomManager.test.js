@@ -257,5 +257,47 @@ describe('roomManager', () => {
     expect(broadcastRoomList).not.toHaveBeenCalled();
     expect(broadcastSystemMessage).not.toHaveBeenCalled();
   });
-});
 
+  test('joinRoom should correctly update the room\'s players array when a new user joins', () => {
+    const mockRoomId = 'room123';
+    const mockUser = { id: 'user2', name: 'Jane' };
+    const mockWs = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs, {});
+
+    // Create an existing room with one player
+    const existingRoom = {
+      host: { id: 'user1', name: 'John' },
+      players: [{ id: 'user1', name: 'John' }],
+      gameOn: false
+    };
+    rooms.set(mockRoomId, existingRoom);
+
+    const mockData = {
+      roomId: mockRoomId,
+      user: mockUser
+    };
+
+    joinRoom(mockData, mockWs, mockConnectedUsers);
+
+    expect(rooms.get(mockRoomId).players).toHaveLength(2);
+    expect(rooms.get(mockRoomId).players).toContainEqual(mockUser);
+    expect(mockConnectedUsers.get(mockWs)).toEqual({
+      roomId: mockRoomId,
+      id: mockUser.id,
+      username: mockUser.name
+    });
+    expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify({
+      type: DATA_TYPES.ROOM_JOINED,
+      roomId: mockRoomId,
+      host: existingRoom.host
+    }));
+    expect(broadcastRoomUpdate).toHaveBeenCalledWith(mockRoomId, rooms);
+    expect(broadcastRoomList).toHaveBeenCalledWith(rooms);
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockUser.name} has joined the room.`,
+      mockRoomId
+    );
+  });
+    
+});

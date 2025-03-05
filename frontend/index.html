@@ -33,6 +33,7 @@
       </div>
     </div>
     
+    <!-- Room and Game sections with shared chat -->
     <div class="wrapper">
       <!-- Room Section -->
       <section id="room" class="room">
@@ -84,9 +85,19 @@
     </div>
   </div>
 
+  <!-- Loader -->
   <div id="loader" class="loader-wrapper">
     <span class="loader"></span>
   </div>
+
+  <!-- Modal -->
+   <div class="modal" id="modal">
+    <div class="modal__content">
+      <button type="button" id="closeModal" class="modal__close" aria-label="Close modal">&times;</button>
+      <h2 class="title title--sm" id="modalTitle">Error</h2>
+      <p id="modalMessage"></p>
+    </div>
+   </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
