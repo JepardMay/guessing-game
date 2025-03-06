@@ -8,7 +8,8 @@ import { showModal, hideModal } from "./modal.js";
 
 const loader = document.getElementById('loader');
 const canvas = document.getElementById('drawing-board');
-const timer = document.getElementById('countdown');
+const timer = document.getElementById('timer');
+const countdown = document.getElementById('countdown');
 
 const ctx = canvas.getContext('2d');
 
@@ -49,12 +50,14 @@ const handleDraw = (data) => {
 };
 
 const handleTimerUpdate = (data) => {
-  if (data.countdown < 10 && !timer.classList.contains('is-animated')) {
-    timer.classList.add('is-animated');
-  } else if (data.countdown >= 10 && timer.classList.contains('is-animated')) {
-    timer.classList.remove('is-animated');
+  if (timer.style.display !== 'initial') timer.style.display = 'initial';
+
+  if (data.countdown < 10 && !countdown.classList.contains('is-animated')) {
+    countdown.classList.add('is-animated');
+  } else if (data.countdown >= 10 && countdown.classList.contains('is-animated')) {
+    countdown.classList.remove('is-animated');
   }
-  timer.textContent = data.countdown;
+  countdown.textContent = data.countdown;
 };
 
 const handleError = (data) => showModal({ message: data.message });

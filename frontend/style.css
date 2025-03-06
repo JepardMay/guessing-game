@@ -592,11 +592,20 @@ input::-webkit-inner-spin-button {
 }
 
 .timer {
+  display: none;
+}
+
+.timer::before {
+  content: " - ";
+  font: inherit;
+}
+
+.timer span {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.timer.is-animated {
+.timer .is-animated {
   animation: timerAnimation 1s ease-in-out infinite;
 }
 

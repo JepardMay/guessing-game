@@ -3,6 +3,21 @@ import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 import { rooms } from './roomManager.js';
 
+const broadcastGameUpdates = (roomId, activePlayer, systemMessage, messageType = null) => {
+  if (messageType) {
+    const message = {
+      type: messageType,
+      activePlayer,
+    };
+
+    broadcastToRoomOnly(message, roomId);
+  }
+
+  broadcastRoomUpdate(roomId, rooms);
+  broadcastRoomList(rooms);
+  broadcastSystemMessage(systemMessage, roomId);
+};
+
 const startTimer = (roomId) => {
   const room = rooms.get(roomId);
   if (!room) return;
@@ -11,20 +26,18 @@ const startTimer = (roomId) => {
 
   let countdown = COUNTDOWN_START;
 
-  broadcastToRoomOnly(roomId, {
+  broadcastToRoomOnly({
     type: DATA_TYPES.TIMER_UPDATE,
     countdown,
-  });
+  }, roomId);
 
   room.timer = setInterval(() => {
     countdown--;
 
-    const message = {
+    broadcastToRoomOnly({
       type: DATA_TYPES.TIMER_UPDATE,
       countdown,
-    };
-
-    broadcastToRoomOnly(message, roomId);
+    }, roomId);
 
     if (countdown <= 0) {
       clearInterval(room.timer);
@@ -37,22 +50,22 @@ export function startGame(data) {
   const room = rooms.get(data.roomId);
   if (room) {
     room.gameOn = true;
-    room.activePlayer = room.players[Math.floor(Math.random() * room.players.length)];
+    selectActivePlayer(room);
 
-    broadcastRoomUpdate(data.roomId, rooms);
-    broadcastRoomList(rooms);
-    broadcastSystemMessage(`The game in room ${data.roomId} has started.`, data.roomId);
-    broadcastSystemMessage(`${room.activePlayer.name || room.activePlayer.id} is drawing now.`, data.roomId);
-    startTimer(data.roomId);
+    broadcastGameUpdates(
+      data.roomId,
+      room.activePlayer,
+      `${room.activePlayer.name || room.activePlayer.id} is drawing now.`
+    );
+
+    if (room.players.length > 1) {
+      startTimer(data.roomId);
+    }
   }
 }
 
-const selectNewActivePlayer = (room) => {
+const selectNewRandomActivePlayer = (room) => {
   const { players, activePlayer } = room;
-
-  if (players.length === 1) {
-    return players[0];
-  }
 
   let newActivePlayer;
   do {
@@ -62,28 +75,34 @@ const selectNewActivePlayer = (room) => {
   return newActivePlayer;
 };
 
+const selectActivePlayer = (room, data) => {
+  if (room.players.length <= 1) return;
+
+  if (data?.selectedUser) {
+    const selectedUser = room.players.find((player) => player.id === data.selectedUser.id);
+    if (!selectedUser) return;
+
+    room.activePlayer = selectedUser;
+    broadcastSystemMessage(`${room.activePlayer.name || room.activePlayer.id} guessed correctly!`, data.roomId);
+  } else {
+    room.activePlayer = selectNewRandomActivePlayer(room);
+  }
+};
+
 export function changePlayer(data) {
   const room = rooms.get(data.roomId);
   if (room) {
-    if (data.selectedUser) {
-      const selectedUser = room.players.find((player) => player.id === data.selectedUser.id);
-      if (!selectedUser) return;
+    selectActivePlayer(room, data);
 
-      room.activePlayer = selectedUser;
-      broadcastSystemMessage(`${room.activePlayer.name || room.activePlayer.id} guessed correctly!`, data.roomId);
-    } else {
-      room.activePlayer = selectNewActivePlayer(room);
+    broadcastGameUpdates(
+      data.roomId,
+      room.activePlayer,
+      `${room.activePlayer.name || room.activePlayer.id} is drawing now.`,
+      DATA_TYPES.PLAYER_CHANGED
+    );
+
+    if (room.players.length > 1) {
+      startTimer(data.roomId);
     }
-
-    const message = {
-      type: DATA_TYPES.PLAYER_CHANGED,
-      activePlayer: room.activePlayer,
-    };
-
-    broadcastRoomUpdate(data.roomId, rooms);
-    broadcastRoomList(rooms);
-    broadcastToRoomOnly(message, data.roomId);
-    broadcastSystemMessage(`${room.activePlayer.name || room.activePlayer.id} is drawing now.`, data.roomId);
-    startTimer(data.roomId);
   }
 }
