@@ -24,6 +24,8 @@ const handleRoomUpdate = (data) => {
 
     if (data.gameOn) {
       activateScreen({ screen: 'game', activePlayer: data.activePlayer });
+    } else if (!data.gameOn) {
+      activateScreen({ screen: 'room', roomId: data.roomId, hostId: data.host.id });
     }
   }
 };

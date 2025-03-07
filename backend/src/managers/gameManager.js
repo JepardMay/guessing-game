@@ -3,7 +3,7 @@ import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 import { rooms } from './roomManager.js';
 
-const broadcastGameUpdates = (roomId, activePlayer, systemMessage, messageType = null) => {
+const broadcastGameUpdates = (roomId, systemMessage, activePlayer, messageType = null) => {
   if (messageType) {
     const message = {
       type: messageType,
@@ -54,13 +54,26 @@ export function startGame(data) {
 
     broadcastGameUpdates(
       data.roomId,
+      `${room.activePlayer.name || room.activePlayer.id} is drawing now.`,
       room.activePlayer,
-      `${room.activePlayer.name || room.activePlayer.id} is drawing now.`
     );
 
     if (room.players.length > 1) {
       startTimer(data.roomId);
     }
+  }
+}
+
+export function stopGame(data) {
+  const room = rooms.get(data.roomId);
+  if (room) {
+    room.gameOn = false;
+
+
+    broadcastGameUpdates(
+      data.roomId,
+      `The game has stopped.`
+    );
   }
 }
 
@@ -96,8 +109,8 @@ export function changePlayer(data) {
 
     broadcastGameUpdates(
       data.roomId,
-      room.activePlayer,
       `${room.activePlayer.name || room.activePlayer.id} is drawing now.`,
+      room.activePlayer,
       DATA_TYPES.PLAYER_CHANGED
     );
 

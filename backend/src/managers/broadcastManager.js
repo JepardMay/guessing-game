@@ -23,7 +23,7 @@ export function broadcastRoomUpdate(roomId, rooms) {
   const room = rooms.get(roomId);
   if (room) {
     const roomData = {
-      type: DATA_TYPES.ROOM_UPDATE, roomId, players: room.players, gameOn: room.gameOn, activePlayer: room.activePlayer };
+      type: DATA_TYPES.ROOM_UPDATE, roomId, players: room.players, gameOn: room.gameOn, activePlayer: room.activePlayer, host: room.host };
     broadcast(roomData);
   }
 }

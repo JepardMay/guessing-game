@@ -11,6 +11,8 @@ const roomPlayers = document.getElementById('roomPlayers');
 const activePlayerEl = document.getElementById('activePlayer');
 const startGameBtn = document.getElementById('startGame');
 const leaveRoomBtn = document.getElementById('leaveRoom');
+const stopGameBtn = document.getElementById('stopGame');
+const leaveGameBtn = document.getElementById('leaveGame');
 const searchInput = document.getElementById('searchRoom');
 
 const state = {
@@ -129,6 +131,7 @@ const updateCurrentRoom = (data) => {
   setPlayers(data);
   user.isHost = getPlayers()[0].id === user.id && getPlayers()[0].isHost;
   startGameBtn.disabled = !user.isHost;
+  stopGameBtn.disabled = !user.isHost;
   roomPlayers.innerHTML = '';
   getPlayers().forEach((player, index) => {
     const playerItem = createPlayerItem(player, index);
@@ -170,6 +173,10 @@ const handleRoomPlayersClick = (e) => {
   }
 };
 
+const handleLeaveAction = () => {
+  sendMessage({ type: DATA_TYPES.LEAVE_ROOM, roomId: user.roomId, user: user });
+};
+
 createRoomBtn.addEventListener('click', () => {
   user.roomId = makeId(10);
   user.isHost = true;
@@ -186,8 +193,11 @@ startGameBtn.addEventListener('click', () => {
   sendMessage({ type: DATA_TYPES.START_GAME, roomId: user.roomId, user: user });
 });
 
-leaveRoomBtn.addEventListener('click', () => {
-  sendMessage({ type: DATA_TYPES.LEAVE_ROOM, roomId: user.roomId, user: user });
+stopGameBtn.addEventListener('click', () => {
+  sendMessage({ type: DATA_TYPES.STOP_GAME, roomId: user.roomId, user: user });
 });
+
+leaveRoomBtn.addEventListener('click', handleLeaveAction);
+leaveGameBtn.addEventListener('click', handleLeaveAction);
 
 export { activateScreen, updateRoomList, updateCurrentRoom, getPlayers };

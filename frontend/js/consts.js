@@ -10,6 +10,7 @@ export const DATA_TYPES = {
   REMOVE_PLAYER: 'removePlayer',
   LEAVE_ROOM: 'leaveRoom',
   START_GAME: 'startGame',
+  STOP_GAME: 'stopGame',
   SYSTEM: 'system',
   ERROR: 'error',
   CHAT: 'chat',
