@@ -1,8 +1,10 @@
-import { rooms, createRoom, joinRoom } from '../src/managers/roomManager.js';
 import { DATA_TYPES } from '../src/constants.js';
+import { checkRoom } from '../src/managers/utils/checkRoom.js';
+import { rooms, createRoom, joinRoom, leaveRoom } from '../src/managers/roomManager.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from '../src/managers/broadcastManager.js';
 
-jest.mock('../src/managers/broadcastToRoomOnly.js');
+jest.mock('../src/managers/utils/broadcastToRoomOnly.js');
+jest.mock('../src/managers/utils/checkRoom.js');
 jest.mock('../src/managers/broadcastManager.js');
 
 describe('roomManager', () => {
@@ -298,5 +300,137 @@ describe('roomManager', () => {
       mockRoomId
     );
   });
-    
+
+  test('joinRoom should not affect other rooms or their player lists', () => {
+    const mockRoomId1 = 'room1';
+    const mockRoomId2 = 'room2';
+    const mockUser1 = { id: 'user1', name: 'John' };
+    const mockUser2 = { id: 'user2', name: 'Jane' };
+    const mockUser3 = { id: 'user3', name: 'Bob' };
+    const mockWs = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs, {});
+
+    // Create two existing rooms
+    rooms.set(mockRoomId1, {
+      host: mockUser1,
+      players: [mockUser1],
+      gameOn: false
+    });
+    rooms.set(mockRoomId2, {
+      host: mockUser2,
+      players: [mockUser2],
+      gameOn: false
+    });
+
+    const mockData = {
+      roomId: mockRoomId1,
+      user: mockUser3
+    };
+
+    joinRoom(mockData, mockWs, mockConnectedUsers);
+
+    // Check that the joined room has been updated correctly
+    expect(rooms.get(mockRoomId1).players).toHaveLength(2);
+    expect(rooms.get(mockRoomId1).players).toContainEqual(mockUser3);
+
+    // Check that the other room remains unchanged
+    expect(rooms.get(mockRoomId2).players).toHaveLength(1);
+    expect(rooms.get(mockRoomId2).players).toContainEqual(mockUser2);
+    expect(rooms.get(mockRoomId2).players).not.toContainEqual(mockUser3);
+
+    expect(broadcastRoomUpdate).toHaveBeenCalledWith(mockRoomId1, rooms);
+    expect(broadcastRoomList).toHaveBeenCalledWith(rooms);
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockUser3.name} has joined the room.`,
+      mockRoomId1
+    );
+  });
+
+  test('leaveRoom should remove the player from the room\'s player list', () => {
+    const mockRoomId = 'room123';
+    const mockUser = { id: 'user1', name: 'John' };
+    const mockWs = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs, { roomId: mockRoomId });
+
+    const mockRoom = {
+      host: { id: 'host', name: 'Host' },
+      players: [
+        { id: 'host', name: 'Host' },
+        mockUser,
+        { id: 'user2', name: 'Jane' }
+      ]
+    };
+    rooms.set(mockRoomId, mockRoom);
+
+    const mockData = {
+      roomId: mockRoomId,
+      user: mockUser
+    };
+
+    leaveRoom(mockData, mockWs, mockConnectedUsers);
+
+    expect(rooms.get(mockRoomId).players).toHaveLength(2);
+    expect(rooms.get(mockRoomId).players).not.toContainEqual(mockUser);
+    expect(mockConnectedUsers.get(mockWs).roomId).toBeNull();
+    expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify({
+      type: DATA_TYPES.ROOM_LEFT,
+      roomId: mockRoomId,
+      host: mockRoom.host
+    }));
+    expect(checkRoom).toHaveBeenCalledWith(mockRoomId, mockUser.id);
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockUser.name} has left the room.`,
+      mockRoomId
+    );
+  });
+
+  test('leaveRoom should handle multiple players leaving simultaneously', () => {
+    const mockRoomId = 'room123';
+    const mockUser1 = { id: 'user1', name: 'John' };
+    const mockUser2 = { id: 'user2', name: 'Jane' };
+    const mockUser3 = { id: 'user3', name: 'Bob' };
+    const mockWs1 = { send: jest.fn() };
+    const mockWs2 = { send: jest.fn() };
+    const mockConnectedUsers = new Map();
+    mockConnectedUsers.set(mockWs1, { roomId: mockRoomId });
+    mockConnectedUsers.set(mockWs2, { roomId: mockRoomId });
+
+    const mockRoom = {
+      host: mockUser1,
+      players: [mockUser1, mockUser2, mockUser3]
+    };
+    rooms.set(mockRoomId, mockRoom);
+
+    leaveRoom({ roomId: mockRoomId, user: mockUser2 }, mockWs1, mockConnectedUsers);
+    leaveRoom({ roomId: mockRoomId, user: mockUser3 }, mockWs2, mockConnectedUsers);
+
+    expect(rooms.get(mockRoomId).players).toHaveLength(1);
+    expect(rooms.get(mockRoomId).players).toContainEqual(mockUser1);
+    expect(rooms.get(mockRoomId).players).not.toContainEqual(mockUser2);
+    expect(rooms.get(mockRoomId).players).not.toContainEqual(mockUser3);
+    expect(mockConnectedUsers.get(mockWs1).roomId).toBeNull();
+    expect(mockConnectedUsers.get(mockWs2).roomId).toBeNull();
+    expect(mockWs1.send).toHaveBeenCalledWith(JSON.stringify({
+      type: DATA_TYPES.ROOM_LEFT,
+      roomId: mockRoomId,
+      host: mockUser1
+    }));
+    expect(mockWs2.send).toHaveBeenCalledWith(JSON.stringify({
+      type: DATA_TYPES.ROOM_LEFT,
+      roomId: mockRoomId,
+      host: mockUser1
+    }));
+    expect(checkRoom).toHaveBeenCalledWith(mockRoomId, mockUser2.id);
+    expect(checkRoom).toHaveBeenCalledWith(mockRoomId, mockUser3.id);
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockUser2.name} has left the room.`,
+      mockRoomId
+    );
+    expect(broadcastSystemMessage).toHaveBeenCalledWith(
+      `${mockUser3.name} has left the room.`,
+      mockRoomId
+    );
+  });
 });
