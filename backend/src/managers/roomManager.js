@@ -55,7 +55,7 @@ export function leaveRoom(data, ws, connectedUsers) {
 
     ws.send(JSON.stringify({ type: DATA_TYPES.ROOM_LEFT, roomId: data.roomId, host: room.host }));
 
-    checkRoom(data.roomId, data.user.id);
     broadcastSystemMessage(`${data.user.name || data.user.id} has left the room.`, data.roomId);
+    checkRoom(data.roomId, data.user.id);
   }
 }
