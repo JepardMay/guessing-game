@@ -5,13 +5,15 @@ import {
   getUser,
   getConnectedUsers,
 } from '../src/managers/userManager.js';
-import { rooms, handleUserDisconnection } from '../src/managers/roomManager.js';
+import { rooms } from '../src/managers/roomManager.js';
+import { handleUserDisconnection } from '../src/managers/playerManager.js';
 import { broadcastRoomList } from '../src/managers/broadcastManager.js';
 import { handleMessage } from '../src/handlers/messageHandler.js';
 import { DATA_TYPES } from '../src/constants.js';
 
 jest.mock('../src/managers/userManager.js');
 jest.mock('../src/managers/roomManager.js');
+jest.mock('../src/managers/playerManager.js');
 jest.mock('../src/managers/broadcastManager.js');
 jest.mock('../src/handlers/messageHandler.js');
 

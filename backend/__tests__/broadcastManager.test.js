@@ -1,10 +1,10 @@
 import { DATA_TYPES } from '../src/constants.js';
-import { broadcast } from '../src/managers/broadcast.js';
-import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
+import { broadcast } from '../src/managers/utils/broadcast.js';
+import { broadcastToRoomOnly } from '../src/managers/utils/broadcastToRoomOnly.js';
 import { broadcastSystemMessage, broadcastRoomList, broadcastRoomUpdate } from '../src/managers/broadcastManager.js';
 
-jest.mock('../src/managers/broadcast.js');
-jest.mock('../src/managers/broadcastToRoomOnly.js');
+jest.mock('../src/managers/utils/broadcast.js');
+jest.mock('../src/managers/utils/broadcastToRoomOnly.js');
 
 describe('Broadcast Manager', () => {
   afterEach(() => {

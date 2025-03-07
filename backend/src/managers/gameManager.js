@@ -1,5 +1,5 @@
 import { DATA_TYPES, COUNTDOWN_START } from '../constants.js';
-import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
+import { broadcastToRoomOnly } from './utils/broadcastToRoomOnly.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 import { rooms } from './roomManager.js';
 

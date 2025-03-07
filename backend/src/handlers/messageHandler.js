@@ -2,7 +2,7 @@ import { DATA_TYPES } from '../constants.js';
 import { createRoom, joinRoom, leaveRoom } from '../managers/roomManager.js';
 import { removePlayer } from '../managers/playerManager.js';
 import { startGame, stopGame, changePlayer } from '../managers/gameManager.js';
-import { broadcastToRoomOnly } from '../managers/broadcastToRoomOnly.js';
+import { broadcastToRoomOnly } from '../managers/utils/broadcastToRoomOnly.js';
 
 const messageHandlers = {
   [DATA_TYPES.CREATE_ROOM]: (data, ws, connectedUsers) => createRoom(data, ws, connectedUsers),

@@ -1,4 +1,4 @@
-import { getConnectedUsers } from './userManager.js';
+import { getConnectedUsers } from '../userManager.js';
 
 export function broadcast(data, filter = () => true) {
   let message;

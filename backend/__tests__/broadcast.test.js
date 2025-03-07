@@ -1,4 +1,4 @@
-import { broadcast } from '../src/managers/broadcast.js';
+import { broadcast } from '../src/managers/utils/broadcast.js';
 import { getConnectedUsers } from '../src/managers/userManager.js';
 
 jest.mock('../src/managers/userManager.js');

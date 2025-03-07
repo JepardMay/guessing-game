@@ -1,6 +1,6 @@
 import { DATA_TYPES } from '../constants.js';
-import { broadcast } from './broadcast.js';
-import { broadcastToRoomOnly } from './broadcastToRoomOnly.js';
+import { broadcast } from './utils/broadcast.js';
+import { broadcastToRoomOnly } from './utils/broadcastToRoomOnly.js';
 
 export function broadcastSystemMessage(message, roomId) {
   const systemMessage = { type: DATA_TYPES.SYSTEM, message };

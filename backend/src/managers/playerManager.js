@@ -1,6 +1,7 @@
 import { DATA_TYPES } from '../constants.js';
+import { checkRoom } from './utils/checkRoom.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
-import { rooms, checkRoom } from './roomManager.js';
+import { rooms } from './roomManager.js';
 
 export function removePlayer(data, connectedUsers) {
   const room = rooms.get(data.roomId);

@@ -1,4 +1,5 @@
 import { DATA_TYPES } from '../constants.js';
+import { checkRoom } from './utils/checkRoom.js';
 import { broadcastRoomUpdate, broadcastRoomList, broadcastSystemMessage } from './broadcastManager.js';
 
 export const rooms = new Map(); // Map<roomId, { host: string, players: { username: string, id: string, isHost: boolean, roomId: string, activePlayer: string }, gameOn: boolean, timer: setInterval}[] }>
@@ -57,21 +58,4 @@ export function leaveRoom(data, ws, connectedUsers) {
     checkRoom(data.roomId, data.user.id);
     broadcastSystemMessage(`${data.user.name || data.user.id} has left the room.`, data.roomId);
   }
-}
-
-export function checkRoom(roomId, userId) {
-  const room = rooms.get(roomId);
-
-  if (room && room.host.id === userId) {
-    if (room.players.length > 0) {
-      room.host = room.players[0];
-      room.players[0].isHost = true;
-      broadcastSystemMessage(`${room.players[0].name || room.players[0].id} is now the host.`, roomId);
-    } else {
-      rooms.delete(roomId);
-    }
-  }
-
-  broadcastRoomUpdate(roomId, rooms);
-  broadcastRoomList(rooms);
 }

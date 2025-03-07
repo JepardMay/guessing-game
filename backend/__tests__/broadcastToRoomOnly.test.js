@@ -1,7 +1,7 @@
-import { broadcast } from '../src/managers/broadcast.js';
-import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
+import { broadcast } from '../src/managers/utils/broadcast.js';
+import { broadcastToRoomOnly } from '../src/managers/utils/broadcastToRoomOnly.js';
 
-jest.mock('../src/managers/broadcast.js');
+jest.mock('../src/managers/utils/broadcast.js');
 
 describe('Broadcast To Room Only', () => {
   afterEach(() => {

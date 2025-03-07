@@ -1,17 +1,14 @@
 import { handleMessage } from '../src/handlers/messageHandler.js';
 import { DATA_TYPES } from '../src/constants.js';
-import {
-  createRoom,
-  joinRoom,
-  leaveRoom,
-  removePlayer,
-  startGame,
-  changePlayer,
-} from '../src/managers/roomManager.js';
-import { broadcastToRoomOnly } from '../src/managers/broadcastToRoomOnly.js';
+import { createRoom, joinRoom, leaveRoom } from '../src/managers/roomManager.js';
+import { removePlayer } from '../src/managers/playerManager.js';
+import { startGame, stopGame, changePlayer } from '../src/managers/gameManager.js';
+import { broadcastToRoomOnly } from '../src/managers/utils/broadcastToRoomOnly.js';
 
 jest.mock('../src/managers/roomManager.js');
-jest.mock('../src/managers/broadcastToRoomOnly.js');
+jest.mock('../src/managers/playerManager.js');
+jest.mock('../src/managers/gameManager.js');
+jest.mock('../src/managers/utils/broadcastToRoomOnly.js');
 
 describe('handleMessage', () => {
   let ws, connectedUsers;
@@ -110,6 +107,23 @@ describe('handleMessage', () => {
     expect(startGame).toHaveBeenCalledWith(data);
   });
 
+  test('should call stopGame from STOP_GAME message', () => {
+    const data = {
+      type: DATA_TYPES.STOP_GAME,
+      roomId: 'room1',
+      user: {
+        username: 'Alice',
+        id: 'user1',
+        isHost: true,
+        roomId: 'room1',
+      },
+    };
+
+    handleMessage(data, ws, connectedUsers);
+
+    expect(stopGame).toHaveBeenCalledWith(data);
+  });
+
   test('should call broadcastToRoomOnly from CHAT message', () => {
     const data = {
       type: DATA_TYPES.CHAT,
@@ -165,6 +179,7 @@ describe('handleMessage', () => {
     expect(removePlayer).not.toHaveBeenCalled();
     expect(leaveRoom).not.toHaveBeenCalled();
     expect(startGame).not.toHaveBeenCalled();
+    expect(stopGame).not.toHaveBeenCalled();
     expect(broadcastToRoomOnly).not.toHaveBeenCalled();
     expect(changePlayer).not.toHaveBeenCalled();
   });
