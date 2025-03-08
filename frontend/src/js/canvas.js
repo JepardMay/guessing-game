@@ -89,10 +89,10 @@ const handleToolbarClick = (e) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
   } else if (e.target.id === 'reduceWidth') {
-    lineWidth = lineWidth-- > 1 ? lineWidth-- : 1;
+    lineWidth = (lineWidth - 1) > 1 ? (lineWidth - 1) : 1;
     sizeInput.value = lineWidth;
   } else if (e.target.id === 'increaseWidth') {
-    lineWidth = lineWidth++ < 300 ? lineWidth++ : 300;
+    lineWidth = (lineWidth + 1) < 300 ? (lineWidth + 1) : 300;
     sizeInput.value = lineWidth;
   }
 };
